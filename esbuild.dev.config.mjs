@@ -6,8 +6,8 @@ import { copy }  from "esbuild-plugin-copy";
 
 
 // Change the following values
-const TEST_VAULT = 'test-vault';
-const PLUGIN_ID = 'obsidian-plugin-base';
+const TEST_VAULT = 'Dynbedded';
+const PLUGIN_ID = 'obsidian-dynbedded';
 
 // Taken and adapted from https://github.com/MSzturc/obsidian-advanced-slides/blob/main/esbuild.config.mjs
 const staticAssetsPlugin = {

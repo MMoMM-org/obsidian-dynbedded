@@ -1,64 +1,151 @@
-import { Notice, Plugin } from 'obsidian';
-import { SampleCommands } from 'SampleCommands';
-import {DEFAULT_SETTINGS, MyPluginSettings, SampleSettingTab} from './SampleSettingTab';
+import {MarkdownRenderer, Plugin} from 'obsidian';
+import {DEFAULT_SETTINGS, DynbeddedSettings, DynbeddedSettingTab} from './DynbeddedSettingTab';
 
 type LogType = typeof console.log;
 
-// Remember to rename these classes and interfaces!
 
-
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class Dynbedded extends Plugin {
+	settings: DynbeddedSettings;
 	pluginName = this.manifest.name;
+	pluginDescription = this.manifest.description;
 	pluginVersion = this.manifest.version;
 	pluginAuthor = this.manifest.author;
 	pluginAuthorUrl = this.manifest.authorUrl;
-	pluginDocumentationUrl = 'https://github.com/MMoMM-Marcus/obsidian-plugin-base';
+	pluginDocumentationUrl = 'https://github.com/MMoMM-Marcus/obsidian-dynbedded';
+
+	static codeBlockKeyword = "dynbedded";
+	static containerClass = "dynbedded";
+	static errorClass = "dynbedded-error";
+
+	static displayError = (parent: HTMLElement, text: string) => {
+		console.log("Dynbedded-Error: ",text)
+		parent.createEl("pre", { text: "Dynbedded: Error: " + text, cls: [Dynbedded.containerClass, Dynbedded.errorClass] });
+	}
+
 
 	async onload() {
 		await this.loadSettings();
 		this.log("Loading Plugin")
 
-
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
-
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
-
-		// This will register the commands of the plugin
-		new SampleCommands(this);
-
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new DynbeddedSettingTab(this.app, this));
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			this.log('click', evt);
+		// Registering the CodeBlockProcessor
+		this.registerMarkdownCodeBlockProcessor(Dynbedded.codeBlockKeyword, async (source, el, ctx) => {
+			const fileNameMatchPattern = /\[\[([^\]]{2}.*)\]\]/u;
+			const fileNameMatch = fileNameMatchPattern.exec(source);
+
+			this.log("FileNameMatch", fileNameMatch);
+
+			if (!fileNameMatch) {
+				Dynbedded.displayError(el, "Bad file link: " + source);
+				return;
+			}
+			let fileName = fileNameMatch[1];
+
+			const dynamicDateMatchPattern = /{{(.*)}}/;
+			const dynamicDateMatch = dynamicDateMatchPattern.exec(fileName);
+			this.log("DynamicDateMatch", dynamicDateMatch);
+			if (dynamicDateMatch !== null) {
+				let dynamicDateFormat = dynamicDateMatch[1];
+				let duration = window.moment.duration(0);
+				this.log("DynamicDateFormat", dynamicDateFormat.includes("|"))
+				if (dynamicDateFormat.includes("|")){
+					const offset = dynamicDateFormat.split("|")[1];
+					this.log("Offset", offset);
+					dynamicDateFormat = dynamicDateFormat.split("|")[0];
+					this.log("dynamicDateMatch",dynamicDateFormat)
+					if ( /^-?\d+$/.test(offset)){
+						this.log("Number");
+						duration = window.moment.duration(Number(offset), "days");
+					} else {
+						this.log("String");
+						duration = window.moment.duration(offset);
+					}
+					this.log("Duration",duration);
+				}
+				const dynamicDate = window.moment().add(duration).format(dynamicDateFormat);
+				this.log("DynamicDate", dynamicDate);
+				// Todo: figure out how to handle wrong formats correctly.. most formats are valid but create undesired results...
+				if (!window.moment(window.moment.now(),dynamicDateFormat,true).isValid || dynamicDate === null) {
+					Dynbedded.displayError(el, "Not a valid Moment.js Time format: "+ dynamicDateFormat);
+					return;
+				}
+				fileName = fileName.replace(dynamicDateMatchPattern,dynamicDate);
+				this.log("DynamicFileName", fileName);
+			}
+			let header = "";
+			if (fileName.contains("#")) {
+				header = fileName.split("#")[1];
+				fileName = fileName.split("#")[0];
+				this.log("Header",header);
+			}
+
+			const matchingFile = this.app.metadataCache.getFirstLinkpathDest(fileName, '');
+			this.log("MatchingFile", matchingFile);
+			if (!matchingFile) {
+				Dynbedded.displayError(el, "File link not found: [["+ fileName + "]]");
+				return;
+			}
+			// Todo: could this be moved up?
+			if (matchingFile.extension !== "md") {
+				Dynbedded.displayError(el, "Bad file extension found, expected markdown: " + matchingFile);
+				return;
+			}
+
+			let fileContents = ""
+			if (header != ""){
+				// @ts-ignore
+				const headings = this.app.metadataCache.getFileCache(matchingFile).headings;
+				if (headings === null || headings === undefined) {
+					const errorMessage = "Header \"" + header + "\" not found in [["+ fileName + "]]";
+					Dynbedded.displayError(el, errorMessage);
+				}
+				this.log("Headings", headings);
+				let position;
+				for (let i = 0; i < headings.length; i++) {
+					const heading = headings[i];
+					this.log("Heading",heading)
+					if (heading.heading == header) {
+						if (i == headings.length - 1) {
+							position = [heading.position.start.line, -1];
+						} else {
+							position = [heading.position.start.line, headings[i + 1].position.start.line];
+						}
+					}
+				}
+				if (position) {
+					let text = await this.app.vault.cachedRead(matchingFile)
+					if (!text.endsWith("\n")) {
+						text = text + "\n"
+					}
+					this.log("Position",position);
+					this.log("Text",text);
+					fileContents = text.split("\n").slice(position[0] + 1, position[1]).join("\n");
+					this.log("Split",fileContents)
+				}
+			} else {
+				fileContents = await this.app.vault.cachedRead(matchingFile);
+			}
+			if (fileContents == "") {
+				const errorMessage = "Header \"" + header + "\" not found in [["+ fileName + "]]";
+				Dynbedded.displayError(el, errorMessage);
+				return;
+			}
+			this.log("File",fileContents)
+			const container = el.createDiv({ cls: [Dynbedded.containerClass] });
+			await MarkdownRenderer.renderMarkdown(fileContents, container, ctx.sourcePath, this);
 		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => this.log('setInterval'), 5 * 60 * 1000));
-
 	}
 
 	onunload() {
 		this.log("Unloading Plugin")
-
 	}
 
 	log(...args: Parameters<LogType>) {
         if (this.settings.debugLogging) {
-            // eslint-disable-next-line no-console
-            console.log(this.pluginName + " Debug:", ...args);
- 	       }
+            console.log(this.pluginName + "-Debug:", ...args);
+		}
 	}	
 
 
@@ -71,7 +158,7 @@ export default class MyPlugin extends Plugin {
 		await this.saveData(this.settings);
 		this.log("Settings saved",this.settings);
 	}
-};
+}
 
 
 

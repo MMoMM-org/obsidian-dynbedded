@@ -87,7 +87,7 @@ var SampleCommands = class {
   }
 };
 
-// src/SampleSettingTab.ts
+// src/DynbeddedSettingTab.ts
 var import_obsidian3 = require("obsidian");
 var DEFAULT_SETTINGS = {
   debugLogging: false,

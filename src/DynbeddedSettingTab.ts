@@ -1,22 +1,20 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import MyPlugin from './main';
+import Dynbedded from './main';
 
 // Remember to rename these classes and interfaces!
-export interface MyPluginSettings {
-	debugLogging: boolean;
-	mySetting: string;
+export interface DynbeddedSettings {
+	debugLogging: boolean
 }
 
 export const DEFAULT_SETTINGS = {
-	debugLogging: false,
-	mySetting: 'default'
+	debugLogging: false
 };
 
 
-export class SampleSettingTab extends PluginSettingTab {
-	private plugin: MyPlugin;
+export class DynbeddedSettingTab extends PluginSettingTab {
+	private plugin: Dynbedded;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: Dynbedded) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -27,6 +25,7 @@ export class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		containerEl.createEl('h1', { text: this.plugin.pluginName});
+		containerEl.createEl('h2', { text: this.plugin.pluginDescription});
 		containerEl.createEl('b', { text: ' Version: ' + this.plugin.pluginVersion });
 		containerEl.createEl('br', {text: ''})
 		containerEl.createEl('br', {text: ''})
@@ -36,22 +35,8 @@ export class SampleSettingTab extends PluginSettingTab {
 		containerEl.createEl('a', {text: 'Plugin Documentation', href: this.plugin.pluginDocumentationUrl})
 		containerEl.createEl('br', {text: ''})
 		containerEl.createEl('br', {text: ''})
-		containerEl.createEl('h3', { text: 'Configuration:'});
+		// containerEl.createEl('h3', { text: 'Configuration:'});
 		// You probably want to start changing the contents below 😀
-
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
-
-
 
 // Leave this alone!
 		containerEl.createEl('h3', { text: 'Developer Settings' });

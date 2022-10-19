@@ -1,12 +1,15 @@
 ### Obsidian Vault
 
-test-vault/.obsidian/plugins/obsidian-plugin-base
+Dynbedded/.obsidian/plugins/obsidian-dynbedded
 
 ## You might want to include the following files by putting a # infront of them or deleting them from here
-test-vault/.obsidian/app.json
-test-vault/.obsidian/appearance.json
-test-vault/.obsidian/hotkeys.json
-test-vault/.obsidian/workspace.json
+Dynbedded/.obsidian/app.json
+Dynbedded/.obsidian/appearance.json
+Dynbedded/.obsidian/hotkeys.json
+Dynbedded/.obsidian/workspace.json
+
+## Other ignores
+*.map
 
 
 ### VisualStudioCode template
@@ -37,6 +40,7 @@ test-vault/.obsidian/workspace.json
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/inspectionProfiles/**
 
 # Generated files
 .idea/**/contentModel.xml
@@ -218,3 +222,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+/.idea/sonarlint/issuestore/index.pb

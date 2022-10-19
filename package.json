@@ -1,9 +1,9 @@
 {
 	"author": "Marcus Breiden <marcus@mmomm.org",
-	"repository": "https://github.com/MMoMM-Marcus/obsidian-plugin-base.git",
+	"repository": "https://github.com/MMoMM-Marcus/obsidian-dynbedded.git",
 	"dependencies": {
 	},
-	"description": "This is a base structure for Obsidian plugins",
+	"description": "Dynamic Embeds for Obsidian.md",
 	"devDependencies": {
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "5.29.0",
@@ -24,7 +24,7 @@
 	"keywords": [],
 	"license": "GPLv3",
 	"main": "src/main.js",
-	"name": "obsidian-plugin-base",
+	"name": "obsidian-dynbedded",
 	"scripts": {
 		"dev": "node esbuild.dev.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
