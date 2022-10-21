@@ -1,8 +1,7 @@
 {
 	"author": "Marcus Breiden <marcus@mmomm.org",
 	"repository": "https://github.com/MMoMM-org/obsidian-dynbedded.git",
-	"dependencies": {
-	},
+	"dependencies": {},
 	"description": "Dynamic Embeds for Obsidian.md",
 	"devDependencies": {
 		"@types/node": "^16.11.6",
