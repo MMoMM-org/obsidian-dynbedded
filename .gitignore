@@ -1,6 +1,6 @@
 ### Obsidian Vault
 
-Dynbedded/.obsidian/plugins/obsidian-dynbedded
+#Dynbedded/.obsidian/plugins/obsidian-dynbedded
 
 ## You might want to include the following files by putting a # infront of them or deleting them from here
 Dynbedded/.obsidian/app.json
@@ -41,6 +41,7 @@ Dynbedded/.obsidian/workspace.json
 .idea/**/dictionaries
 .idea/**/shelf
 .idea/inspectionProfiles/**
+.idea/sonarlint/**
 
 # Generated files
 .idea/**/contentModel.xml

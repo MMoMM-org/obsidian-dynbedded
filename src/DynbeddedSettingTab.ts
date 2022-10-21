@@ -36,7 +36,18 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 		containerEl.createEl('br', {text: ''})
 		containerEl.createEl('br', {text: ''})
 		// containerEl.createEl('h3', { text: 'Configuration:'});
-		// You probably want to start changing the contents below 😀
+		// take from https://github.com/zsviczian/obsidian-excalidraw-plugin/blob/04367bd3cd96a162185401139995f7fc48481470/src/settings.ts#L261
+		const coffeeDiv = containerEl.createDiv("coffee");
+		coffeeDiv.addClass("ex-coffee-div");
+		const coffeeLink = coffeeDiv.createEl("a", {
+			href: "https://ko-fi.com/mmomm",
+		});
+		const coffeeImg = coffeeLink.createEl("img", {
+			attr: {
+				src: "https://cdn.ko-fi.com/cdn/kofi3.png?v=3",
+			},
+		});
+		coffeeImg.height = 45;
 
 // Leave this alone!
 		containerEl.createEl('h3', { text: 'Developer Settings' });

@@ -64,7 +64,7 @@ will return the section of the note from "yesterday" starting with header "#Head
 
 ## Examples
 
-If you want to see more examples take a look into the Test Vault under [Dynbedded](https://github.com/MMoMM-Marcus/obsidian-dynbedded/blob/23bcc02cbafa1d6865a3b677c094388368d1b6a6/Dynbedded) in this repository.
+If you want to see more examples take a look into the Test Vault under [Dynbedded](Dynbedded) in this repository.
 
 You can also read more about the plugin on my website:
 

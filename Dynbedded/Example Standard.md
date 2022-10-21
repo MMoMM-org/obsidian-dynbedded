@@ -55,6 +55,14 @@ dynbedded works without Headers but not with checkboxes (trust me 😢  neither 
 [[A note with 3 Headers and some checkboxes]]
 ```
 
+### dynbedded [[A note with some Tasks]]
+dynbedded works without Headers but not with tasks (trust me 😢  neither with headers)
+```dynbedded
+[[A note with some Tasks]]
+```
+
+
+
 ## Error Behaviour
 
 ### dynbedded [[A note with 3 Headers and some checkboxes#Header 4]]
