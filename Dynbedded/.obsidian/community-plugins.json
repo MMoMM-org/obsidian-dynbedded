@@ -2,6 +2,6 @@
   "hot-reload",
   "obsidian-plugin-base",
   "dataview",
-  "obsidian-dynbedded",
-  "obsidian-tasks-plugin"
+  "obsidian-tasks-plugin",
+  "obsidian-dynbedded"
 ]
