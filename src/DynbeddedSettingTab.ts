@@ -1,7 +1,7 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import Dynbedded from './main';
 
-// Remember to rename these classes and interfaces!
+
 export interface DynbeddedSettings {
 	debugLogging: boolean
 }

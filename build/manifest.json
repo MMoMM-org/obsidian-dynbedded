@@ -1,9 +1,9 @@
 {
-	"id": "obsidian-plugin-base",
-	"name": "Base Plugin Structure",
+	"id": "obsidian-dynbedded",
+	"name": "Dynbedded",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "This is a base structure for Obsidian Plugins",
+	"description": "Dynamic Embeds for Obsidian.md",
 	"author": "Marcus Breiden <marcus@mmomm.org>",
 	"authorUrl": "https://www.mmomm.org",
 	"isDesktopOnly": false
