@@ -55,10 +55,32 @@ dynbedded works without Headers but not with checkboxes (trust me 😢  neither 
 [[A note with 3 Headers and some checkboxes]]
 ```
 
+## Corner Cases / Community Plugin support
+
 ### dynbedded [[A note with some Tasks]]
 dynbedded works without Headers but not with tasks (trust me 😢  neither with headers)
 ```dynbedded
 [[A note with some Tasks]]
+```
+
+## dynbedded [[A note with some Tasks]] via dataview
+If you use Dataview on the other hand it also works with tasks 😀
+
+```dynbedded
+[[A note with some Tasks#Dataview]]
+```
+
+## dynbedded [[A Note with a Button]]
+This also works 😀
+
+```dynbedded
+[[A Note with a Button]]
+```
+
+## dynbedded [[A Note with a Button#And another one]]
+
+```dynbedded
+[[A Note with a Button#And another one]]
 ```
 
 

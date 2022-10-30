@@ -1,16 +1,16 @@
 # Header 1
 [[Example Standard]]
-This is an paragraph
+This is a paragraph
 #AlsoShowTagsPlease
 
 # Header 2
 [[Example Standard]]
-This is an paragraph 2
+This is a paragraph 2
 #AlsoShowTagsPlease 
 
 # Header 3
 [[Example Date Substitution]]
-This is an Dynamic Test
+This is a Dynamic Test
 #AlsoShowTagsPlease 
 - [ ] Kleiner Test
 - [ ] Noch ein Test
