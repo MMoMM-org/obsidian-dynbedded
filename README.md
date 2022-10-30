@@ -54,7 +54,7 @@ Please Note 💡: You need to have the full note name inside the curly brackets,
 
 You can also change the date to be used by "adding" a specific duration to the actual date, either as
 - Number (positive or negative) "of days"
-- String based on ISO8601 format for example, **```P-1D```**, [for more information click here](https://en.wikipedia.org/wiki/ISO_8601#Durations ]
+- String based on ISO8601 format for example, **```P-1D```**, [for more information click here](https://en.wikipedia.org/wiki/ISO_8601#Durations)
 
 e.g.
 ~~~
