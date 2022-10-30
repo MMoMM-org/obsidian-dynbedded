@@ -10,7 +10,7 @@ const PLUGIN_ID = 'obsidian-dynbedded';
 const staticAssetsPlugin = {
 	name: 'static-assets-plugin',
 	setup(build) {
-		if (!dev) {
+		if (dev) {
 			build.onLoad({filter: /.+/}, (args) => {
 				return {
 					watchFiles: ['styles.css', 'esbuild.config.mjs', 'manifest.json'],
