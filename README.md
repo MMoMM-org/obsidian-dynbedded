@@ -1,22 +1,7 @@
 # Obsidian Dynbedded
-Embed snippets, templates and any linkable by delegating the current scope to the embedded file.
+Embed snippets, templates and any linkable by delegating the current scope to the embedded file either by using a direct reference or as reference with date naming format relative from today.
 
-## Explanation:
-Embeds the contents of file ***`Note with Dataview.md`***, existing in the active vault.
-~~~
-```dynbedded
-[[Note with Dataview]]
-```
-~~~
-This will then include the content of that note into the current note, and execute any dynamic content from the included note in the context of the current note.
-
-As an example: a Dataview script to show inline links
-```dataview
-LIST FROM [[]]
-```
-will show the inline links of the current note, not the inline links of the note you are embedding.
-
-# Features:
+# Features
 
 ## Embedded other notes
 
@@ -26,11 +11,21 @@ You can also use Headers in the embedded.
 e.g.
 ~~~
 ```dynbedded
-[[Note with Dataview#Header is possible too]]
+[[Note with Dataview#Pick any header level you like]]
 ```
 ~~~
 
-which will only show the content of the "Header is possible too" section.
+This will then include the content of that note into the current note, and execute any dynamic content from the included note in the context of the current note.
+
+As an example: a Dataview script to show inline links
+~~~
+```dataview
+LIST FROM [[]]
+```
+~~~
+will show the inline links of the current note, not the inline links of the note you are embedding.
+
+![Dataview Inliks](images/40-01%20Dataview%20Inlinks.png)
 
 ## Current Date substitution of note names
 
@@ -47,6 +42,14 @@ e.g.
 
 will embed the content of the "Header is possible too" section of the note with a name of the current date in "YYYY-MM-DD" format, e.g 2022-10-14
 
+Please Note 💡: You need to have the full note name inside the curly brackets, so if you want to use something like DP-2022-10-14 the  syntax looks like:
+
+~~~
+```dynbedded
+[[{{[DP-]YYYY-MM-DD}}#Header is possible too]]
+```
+~~~
+
 ### Flexible Date 🚀📆
 
 You can also change the date to be used by "adding" a specific duration to the actual date, either as
@@ -61,6 +64,19 @@ e.g.
 ~~~
 will return the section of the note from "yesterday" starting with header "#Header is possible too"
 
+## Styling
+
+You can style the embedded content with a style sheet. The following styles are available:
+
+- .dynbedded = for the normal display. There is no default value for this at the moment. (This styling needs to be in front of the error Styling if you restyle both!)
+- .dynbedded-error = for error messages, by default red. See [styles.css](styles.css)
+
+After creating your own style sheet you need to copy it to the .obsidian/snippets folder and enable the style sheet in Appearance / CSS Snippets.
+
+## Working with other plugins
+Some plugins are just the perfect partner for Dynbedded, and were one of the reasons this plugin was created 😀
+- [Dataview](https://github.com/blacksmithgu/obsidian-dataview) will not only be able to show information referenced from the current note (like the inlinks example) but will also allow you to work with Tasks! No Fake checking of Task boxes.. it is the real thing.
+- [Buttons](https://github.com/shabegom/buttons) also works quite well with Dynbedded, allowing you to create a "master note" with some reusable buttons.
 
 ## Examples
 
@@ -68,38 +84,36 @@ If you want to see more examples take a look into the Test Vault under [Dynbedde
 
 You can also read more about the plugin on my website:
 
-https://www.mmomm.org/ path to (English Version)
-https://www.mmomm.org/ path to (Deutsche Version)
+- [MMoMM.org English Version](https://www.mmomm.org/en/post/obsidian-dynbedded)
+- [MMoMM.org Deutsche Version](https://www.mmomm.org/post/obsidian-dynbedded)
 
 Or if you are more the Video type of person take a look at the following video examples:
 
-Youtube link (English version)
-Youtube ling (Deutsche Version
-
+- [Youtube English version](https://youtu.be/pytz0KENhp8)
+- [Youtube Deutsche Version](https://youtu.be/_0MooUB_sWQ)
 
 ## Limitations
 
 There are some limitations to the plugin (some might be overcome in the future, some not.)
-- Checkboxes are displayed and can be checked but this is only fake. The original checkboxes are not checked!
-- The links inside the code-block are NOT links, so if you rename your note the connection breaks.
+- Checkboxes are displayed and can be checked but this is only fake. The original checkboxes are not checked! The same is true for Tasks from the Tasks Plugin. See [Working with other plugins](#Working with other plugins) for a workaround.
+- The links inside the code-block to embed the other notes data are NOT links, so if you rename your targeted note the connection breaks.
 
+## Possible P+1D features
+PS: No, I won't deliver those features tomorrow 😀
 
-## Styling
+- Name of the day as relative dates, e.g. DWed for this week Wednesday
+- Relative name of the day as relative dates, e.g. D-1Wed for last week Wednesday
 
-You can style the embedded content with a style sheet. The following styles are available:
+# Installing
 
-- .dynbedded-error = for error messages, by default red. See [styles.css](https://github.com/MMoMM-Marcus/obsidian-dynbedded/blob/23bcc02cbafa1d6865a3b677c094388368d1b6a6/styles.css))
-- .dynbedded = for the normal display. There is no default value for this at the moment.
+## Installing via Obsidian Community Plugins
 
-# Installing:
-
-## Installing via Obsidian Plugin
-
-Todo: add steps to install
+Just install the plugin via the community plugin dialog as soon as it becomes available. After enabling you are ready to go.
+At the moment there are no real settings available, only debug logging. (And a link to my Ko-Fi Support)
 
 ## Installing via BRAT
 
-You can install this plugin via BRAT as long as it is not officially available.
+You can install this plugin via BRAT as long as it is not officially available or if you want to test beta versions (there is none at the moment, so let me know if you want to know when I make one)
 
 For more information on BRAT and how to install this plugin take a look here:
 https://github.com/TfTHacker/obsidian42-brat#Quick-Guide-for-using-BRAT
@@ -107,46 +121,8 @@ https://github.com/TfTHacker/obsidian42-brat#Quick-Guide-for-using-BRAT
 
 ## Manually installing the plugin
 
-Copy over `main.js`, `styles.css`, `manifest.json` from the build directory to your vault `VaultFolder/.obsidian/plugins/obsidian-dynbedded/`.
+Copy over `main.js`, `styles.css`, `manifest.json` from the [build](build) directory to your vault `VaultFolder/.obsidian/plugins/obsidian-dynbedded/`.
 
+## Acknowledgement
 
-# Developers
-
-### Dependencies
-
-- esbuild-plugin-copy https://nx-plugins.netlify.app/derived/esbuild.html#copy
-- semantic-release (and GitHub Actions) for more information see https://github.com/semantic-release/semantic-release
-- [HotReload](https://github.com/pjeby/hot-reload) (Already included in the test-vault)
-
-### Usage
-
-#### Prepare Development
-
-- Rename test-vault in your Git Repo to something you like
-- Rename obsidian-plugin-base in your Git Repo test-vault/.obsidian/plugins to your plugin id
-  - if you create a new folder make sure that it contains a .hotreload file
-- Change TEST_VAULT in esbuild.dev.config.mjs to reflect the name to your Test Vault
-- Change PLUGIN_ID in esbuild.dev.config.mjs to reflect the name to your plugin
-- Run the dev version of esbuild in debug mode to watch changes to files and autodeploy to the Test Vault
-- [Setup GitHub Actions for Obsidian Release](https://marcus.se.net/obsidian-plugin-docs/publishing/release-your-plugin-with-github-actions)
-- [Setup GitHub Actions for Semantic-Release](https://github.com/semantic-release/semantic-release/blob/master/docs/recipes/ci-configurations/github-actions.md
-
-
-#### Development
-
-- Your commit messages need to be based on the [ESLint Convention](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-eslint)
-- Every push to master will trigger a release!!! [Take a look here for more information and why you should do it this way](https://github.com/semantic-release/semantic-release/blob/master/docs/support/FAQ.md#is-it-really-a-good-idea-to-release-on-every-push)
-ToDo: ???
-
-
-#### Release
-[![semantic-release: eslint](https://img.shields.io/badge/semantic--release-eslint-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
-
-- If you want to push a release.... 
-  - merge your development branch into the master and push [Take a look here for more information and why you should do it this way](https://github.com/semantic-release/semantic-release/blob/master/docs/support/FAQ.md#is-it-really-a-good-idea-to-release-on-every-push)
-  - versions should be automatically updated and a release should be bundled
-
-## ToDo
-
-- Implement Beta Builds for BRAT via https://github.com/semantic-release/semantic-release/blob/master/docs/recipes/release-workflow/pre-releases.md#publishing-pre-releases
-- 
+Based on the general idea from [Dynamic Embed](https://github.com/dabravin/obsidian-dynamic-embed).

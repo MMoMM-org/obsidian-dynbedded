@@ -11,14 +11,14 @@ LIST FROM [[]]
 
 ## ! [[{{YYYY-MM-DD}}]]
 
-Show [[{{YYYY-MM-DD}}]] via dynbedded which will display the incoming links to the [[Dataview Note]] note **IF** an embedded would be able to use [[date substitution]]
+Show [[{{YYYY-MM-DD}}]] via dynbedded which will display the incoming links to the [[Dataview Note]] note **IF** an embedded would be able to use [[Date Substitution]]
 
 ![[{{YYYY-MM-DD}}]]
 
 # Dynbedded Feature
 
 ## Simple Date Substituion Examples
-More info about [[date substitution]] can be found in the Note: [[date substitution]] 😀
+More info about [[Date Substitution]] can be found in the Note: [[Date Substitution]] 😀
 
 
 ### dynbedded  [[{{YYY-MM-DD}}]]
@@ -50,7 +50,7 @@ Show **This also works** section of [[{{[DP-]YYYY-MM-DD}}]] via dynbedded.
 ```
 
 ## Advanced Date Substitution Examples
-More info about [[date substitution]] can be found in the Note: [[date substitution]] 😀
+More info about [[Date Substitution]] can be found in the Note: [[Date Substitution]] 😀
 
 ### dynbedded  [[{{YYYY-MM-DD|-1}}]]
 Show [[{{YYYY-MM-DD}}|-1]] **(Yesterday)** via dynbedded which will display the incoming links to THIS note .
