@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.0.1...1.0.2) (2022-10-30)
+
+
+### Bug Fixes
+
+* trying to get the build script to work correclty, without building locally. ([43b7f5d](https://github.com/MMoMM-org/obsidian-dynbedded/commit/43b7f5d1d90ef76db5daa71f8b07eaa14aabbba5))
+
 ## [1.0.1](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.0.0...1.0.1) (2022-10-30)
 
 
