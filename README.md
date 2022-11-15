@@ -1,6 +1,8 @@
 # Obsidian Dynbedded
 Embed snippets, templates and any linkable by delegating the current scope to the embedded file either by using a direct reference or as reference with date naming format relative from today.
 
+![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22obsidian-dynbedded%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)
+
 # Features
 
 ## Embedded other notes
@@ -75,7 +77,7 @@ After creating your own style sheet you need to copy it to the .obsidian/snippet
 
 ## Working with other plugins
 Some plugins are just the perfect partner for Dynbedded, and were one of the reasons this plugin was created 😀
-- [Dataview](https://github.com/blacksmithgu/obsidian-dataview) will not only be able to show information referenced from the current note (like the inlinks example) but will also allow you to work with Tasks! No Fake checking of Task boxes.. it is the real thing.
+- [Dataview](https://github.com/blacksmithgu/obsidian-dataview) will not only be able to show information referenced from the current note (like the inlinks example) but will also allow you to work with Tasks! No Fake checking of Task boxes. It is the real thing.
 - [Buttons](https://github.com/shabegom/buttons) also works quite well with Dynbedded, allowing you to create a "master note" with some reusable buttons.
 
 ## Examples
@@ -89,18 +91,20 @@ You can also read more about the plugin on my website:
 
 Or if you are more the Video type of person take a look at the following video examples:
 
-- [Youtube English version](https://youtu.be/pytz0KENhp8)
-- [Youtube Deutsche Version](https://youtu.be/_0MooUB_sWQ)
+- [YouTube English version](https://youtu.be/pytz0KENhp8)
+- [YouTube Deutsche Version](https://youtu.be/_0MooUB_sWQ)
 
 ## Limitations
 
 There are some limitations to the plugin (some might be overcome in the future, some not.)
 - Checkboxes are displayed and can be checked but this is only fake. The original checkboxes are not checked! The same is true for Tasks from the Tasks Plugin. See [Working with other plugins](#Working with other plugins) for a workaround.
 - The links inside the code-block to embed the other notes data are NOT links, so if you rename your targeted note the connection breaks.
+- Dynbedded will not search for content between Header Levels, it will search for content between headers, see [Issue #2](https://github.com/MMoMM-org/obsidian-dynbedded/issues/2)
 
 ## Possible P+1D features
 PS: No, I won't deliver those features tomorrow 😀
 
+- Automatic Refresh of Embeds
 - Name of the day as relative dates, e.g. DWed for this week Wednesday
 - Relative name of the day as relative dates, e.g. D-1Wed for last week Wednesday
 
