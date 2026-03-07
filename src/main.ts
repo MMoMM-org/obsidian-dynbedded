@@ -23,11 +23,13 @@ export default class Dynbedded extends Plugin {
 		parent.createEl("pre", { text: "Dynbedded: Error: " + text, cls: [Dynbedded.containerClass, Dynbedded.errorClass] });
 	}
 
-	dynbeddedProcessor = new DynbeddedProcessor(app, this);
+	dynbeddedProcessor: DynbeddedProcessor;
 
 	async onload() {
 		await this.loadSettings();
 		this.log("Loading Plugin")
+
+		this.dynbeddedProcessor = new DynbeddedProcessor(this.app, this);
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new DynbeddedSettingTab(this.app, this));

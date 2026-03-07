@@ -1,24 +1,9 @@
 import esbuild from "esbuild";
-import process from "process";
 import builtins from 'builtin-modules'
 import {copy} from "esbuild-plugin-copy";
 
 const TEST_VAULT = 'Dynbedded';
 const PLUGIN_ID = 'obsidian-dynbedded';
-
-// Taken and adapted from https://github.com/MSzturc/obsidian-advanced-slides/blob/main/esbuild.config.mjs
-const staticAssetsPlugin = {
-	name: 'static-assets-plugin',
-	setup(build) {
-		if (dev) {
-			build.onLoad({filter: /.+/}, (args) => {
-				return {
-					watchFiles: ['styles.css', 'esbuild.config.mjs', 'manifest.json'],
-				};
-			});
-		}
-	},
-};
 
 const banner =
 `/*
@@ -31,7 +16,6 @@ const prod = (process.argv[2] === 'production');
 const dev = (process.argv[2] === 'dev' || process.argv[3] === 'dev');
 const PLUGINS_PATH = '/.obsidian/plugins/';
 
-
 let outfile;
 if (!dev) {
 	outfile = './build/main.js';
@@ -39,8 +23,7 @@ if (!dev) {
 	outfile = TEST_VAULT + PLUGINS_PATH + PLUGIN_ID +'/main.js';
 }
 
-
-esbuild.build({
+const options = {
 	banner: {
 		js: banner,
 	},
@@ -62,14 +45,12 @@ esbuild.build({
 		'@lezer/lr',
 		...builtins],
 	format: 'cjs',
-	watch: !prod,
 	target: 'es2018',
 	logLevel: "info",
 	sourcemap: prod ? false : 'inline',
 	treeShaking: true,
 	outfile: outfile,
 	plugins: [
-		staticAssetsPlugin,
 		copy({
 			assets: {
 				from: ['./manifest.json', './styles.css'],
@@ -77,4 +58,11 @@ esbuild.build({
 			},
 		}),
 	],
-}).catch(() => process.exit(1));
+};
+
+if (dev) {
+	const ctx = await esbuild.context(options);
+	await ctx.watch();
+} else {
+	await esbuild.build(options).catch(() => process.exit(1));
+}
