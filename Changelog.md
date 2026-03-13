@@ -1,3 +1,11 @@
+## [1.1.3](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.1.2...1.1.3) (2026-03-13)
+
+
+### Bug Fixes
+
+* correct esbuild copy plugin config so manifest.json and styles.css copy with extension ([71681d8](https://github.com/MMoMM-org/obsidian-dynbedded/commit/71681d874e585cffc54600d5121aa18fe46e2ae1))
+* run version-bump and full build inside semantic-release pipeline ([6e73abf](https://github.com/MMoMM-org/obsidian-dynbedded/commit/6e73abf66c902ed34cb262defa9af3534074f7c2))
+
 ## [1.1.2](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.1.1...1.1.2) (2026-03-13)
 
 
