@@ -32,7 +32,8 @@ var import_obsidian3 = require("obsidian");
 // src/DynbeddedSettingTab.ts
 var import_obsidian = require("obsidian");
 var DEFAULT_SETTINGS = {
-  debugLogging: false
+  debugLogging: false,
+  silentMode: false
 };
 var DynbeddedSettingTab = class extends import_obsidian.PluginSettingTab {
   constructor(app, plugin) {
@@ -64,6 +65,14 @@ var DynbeddedSettingTab = class extends import_obsidian.PluginSettingTab {
       }
     });
     coffeeImg.height = 45;
+    containerEl.createEl("h3", { text: "Plugin Settings" });
+    new import_obsidian.Setting(containerEl).setName("Enable Silent Mode").setDesc("When enabled, missing files or headers render as empty blocks instead of showing an error message.").addToggle(
+      (toggle) => toggle.setValue(this.plugin.settings.silentMode).onChange(async (value) => {
+        this.plugin.log("Silent Mode", value);
+        this.plugin.settings.silentMode = value;
+        await this.plugin.saveSettings();
+      })
+    );
     containerEl.createEl("h3", { text: "Developer Settings" });
     new import_obsidian.Setting(containerEl).setName("Enable Debug Logging").setDesc("If this is enabled, more things are printed to the console.").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.debugLogging).onChange(async (value) => {
@@ -82,54 +91,76 @@ var DynbeddedProcessor = class {
     this.plugin = plugin;
     this.app = app;
   }
+  showError(el, message) {
+    if (this.plugin.settings.silentMode) {
+      this.plugin.log("Suppressed error:", message);
+    } else {
+      Dynbedded.displayError(el, message);
+    }
+  }
   async render(source, el, ctx) {
+    const headerHierarchy = /^headerHierarchy:\s*true\s*$/m.test(source);
+    this.plugin.log("HeaderHierarchy", headerHierarchy);
     const fileNameMatchPattern = /\[\[([^\]]{2}.*)\]\]/u;
     const fileNameMatch = fileNameMatchPattern.exec(source);
     this.plugin.log("FileNameMatch", fileNameMatch);
     if (!fileNameMatch) {
-      Dynbedded.displayError(el, "Bad file link: " + source);
+      this.showError(el, "Bad file link: " + source);
       return;
     }
     let fileName = fileNameMatch[1];
-    const dynamicDateMatchPattern = /{{(.*)}}/;
-    const dynamicDateMatch = dynamicDateMatchPattern.exec(fileName);
-    this.plugin.log("DynamicDateMatch", dynamicDateMatch);
-    if (dynamicDateMatch !== null) {
-      const { dynamicDateFormat, dynamicDate } = this.getDynamicDate(dynamicDateMatch);
-      if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
-        Dynbedded.displayError(el, "Not a valid Moment.js Time format: " + dynamicDateFormat);
-        return;
-      }
-      fileName = fileName.replace(dynamicDateMatchPattern, dynamicDate);
-      this.plugin.log("DynamicFileName", fileName);
-    }
     let header = "";
     if (fileName.contains("#")) {
       const __ret = this.splitFileName(fileName);
       header = __ret.header;
       fileName = __ret.fileName;
     }
+    const dynamicDateMatchPattern = /{{(.*)}}/;
+    const filenameDateMatch = dynamicDateMatchPattern.exec(fileName);
+    this.plugin.log("DynamicDateMatch (filename)", filenameDateMatch);
+    if (filenameDateMatch !== null) {
+      const { dynamicDateFormat, dynamicDate } = this.getDynamicDate(filenameDateMatch);
+      if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
+        this.showError(el, "Not a valid Moment.js Time format: " + dynamicDateFormat);
+        return;
+      }
+      fileName = fileName.replace(dynamicDateMatchPattern, dynamicDate);
+      this.plugin.log("DynamicFileName", fileName);
+    }
+    if (header !== "") {
+      const headerDateMatch = dynamicDateMatchPattern.exec(header);
+      this.plugin.log("DynamicDateMatch (header)", headerDateMatch);
+      if (headerDateMatch !== null) {
+        const { dynamicDateFormat, dynamicDate } = this.getDynamicDate(headerDateMatch);
+        if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
+          this.showError(el, "Not a valid Moment.js Time format: " + dynamicDateFormat);
+          return;
+        }
+        header = header.replace(dynamicDateMatchPattern, dynamicDate);
+        this.plugin.log("DynamicHeader", header);
+      }
+    }
     const matchingFile = this.app.metadataCache.getFirstLinkpathDest(fileName, "");
     this.plugin.log("MatchingFile", matchingFile);
     if (!matchingFile) {
-      Dynbedded.displayError(el, "File link not found: [[" + fileName + "]]");
+      this.showError(el, "File link not found: [[" + fileName + "]]");
       return;
     }
     if (matchingFile.extension !== "md") {
-      Dynbedded.displayError(el, "Bad file extension found, expected markdown: " + matchingFile);
+      this.showError(el, "Bad file extension found, expected markdown: " + matchingFile);
       return;
     }
     let fileContents = "";
     if (header != "") {
       const fileCache = this.app.metadataCache.getFileCache(matchingFile);
       if (!fileCache) {
-        Dynbedded.displayError(el, "File cache not available for [[" + fileName + "]]");
+        this.showError(el, "File cache not available for [[" + fileName + "]]");
         return;
       }
       const headings = fileCache.headings;
       if (headings === null || headings === void 0) {
         const errorMessage = 'Header "' + header + '" not found in [[' + fileName + "]]";
-        Dynbedded.displayError(el, errorMessage);
+        this.showError(el, errorMessage);
         return;
       }
       this.plugin.log("Headings", headings);
@@ -138,16 +169,25 @@ var DynbeddedProcessor = class {
         const heading = headings[i];
         this.plugin.log("Heading", heading);
         if (heading.heading == header) {
-          if (i == headings.length - 1) {
-            position = [heading.position.start.line, -1];
-          } else {
-            position = [heading.position.start.line, headings[i + 1].position.start.line];
-          }
+          position = {
+            start: heading.position.start.line,
+            end: (() => {
+              if (!headerHierarchy) {
+                return i == headings.length - 1 ? -1 : headings[i + 1].position.start.line;
+              }
+              for (let j = i + 1; j < headings.length; j++) {
+                if (headings[j].level <= heading.level) {
+                  return headings[j].position.start.line;
+                }
+              }
+              return -1;
+            })()
+          };
           break;
         }
       }
       if (position === void 0) {
-        Dynbedded.displayError(el, 'Header "' + header + '" not found in [[' + fileName + "]]");
+        this.showError(el, 'Header "' + header + '" not found in [[' + fileName + "]]");
         return;
       }
       fileContents = await this.getHeaderSectionContent(matchingFile, position, fileContents);
@@ -190,7 +230,7 @@ var DynbeddedProcessor = class {
     }
     this.plugin.log("Position", position);
     this.plugin.log("Text", text);
-    fileContents = text.split("\n").slice(position[0] + 1, position[1]).join("\n");
+    fileContents = text.split("\n").slice(position.start + 1, position.end).join("\n");
     this.plugin.log("Split", fileContents);
     return fileContents;
   }
