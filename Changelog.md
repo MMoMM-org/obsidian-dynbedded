@@ -1,3 +1,11 @@
+## [1.1.2](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.1.1...1.1.2) (2026-03-13)
+
+
+### Bug Fixes
+
+* replace date headings oldest-first to prevent cascade overwrites in update-vault ([7fa0b7e](https://github.com/MMoMM-org/obsidian-dynbedded/commit/7fa0b7e902fb24ce6599cec08eb3febd76659937))
+* update README section title and build manifest minAppVersion ([dcb58d9](https://github.com/MMoMM-org/obsidian-dynbedded/commit/dcb58d9e068e6e1a4f185000614fb589735b2ea7))
+
 ## [1.1.1](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.1.0...1.1.1) (2026-03-13)
 
 
