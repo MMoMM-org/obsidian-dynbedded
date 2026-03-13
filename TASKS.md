@@ -2,20 +2,34 @@
 
 Sourced from [GitHub Issues](https://github.com/MMoMM-org/obsidian-dynbedded/issues).
 
+> **Lifecycle:** Tasks move to *Pending Confirmation* when committed, and to *Done* when a release is published.
+
 ---
 
 ## Open
 
-### #2 — Header level hierarchy not respected (known limitation)
-When searching for a header, the plugin takes all content until the *next heading of any level* rather than respecting the hierarchy. E.g. embedding `## Section` also stops at `### SubSection`.
-**Where:** `DynbeddedProcessor.ts` → `render()` heading loop — when finding the end boundary, only stop at headings of equal or higher level (lower or equal `heading.level`).
+### #2 — Header level hierarchy (opt-in via code block flag)
+By default the plugin stops a header section at the next heading of *any* level. With `headerHierarchy: true` it should stop only at a heading of equal or higher level, so subheadings are included.
+
+**Syntax:**
+```dynbedded
+[[File#Header]]
+headerHierarchy: true
+```
+
+- Absent or `false` → current behaviour (no change)
+- `true` → stop only at headings with `level <=` the matched heading's level
+
+**Where:** `DynbeddedProcessor.ts` → `render()`:
+1. Parse optional `headerHierarchy` flag from `source` (second line, if present)
+2. In the heading loop, when `headerHierarchy` is true, skip headings with `level >` matched heading's level when determining the end boundary
+3. Update README and test vault (`Dynbedded/`) with examples
 
 ---
 
 ## Technical Debt
 
-### TD-2 — `minAppVersion` and obsidian package out of date
-`manifest.json` declares `minAppVersion: 0.15.0` but the plugin uses APIs not available that far back, and misses improvements from 1.x. The obsidian devDependency should be updated to `latest` (it already is in package.json), and `minAppVersion` raised to a realistic value (e.g. `1.4.0`).
+*(none open)*
 
 ---
 
@@ -53,15 +67,20 @@ Allow `{{DWed}}` to resolve to this week's Wednesday, and `{{D-1Wed}}` to last w
 
 ---
 
-## Done
+## Pending Confirmation
 
-### #3 — Misleading error when header has no content ✅ `0e8951b`
-### #4 — `getFileCache()` may return null ✅ `0e8951b`
-### #5 — Break out of loop after header is found ✅ `0e8951b`
-### #6 — Refactor `position` from array to object ✅ `834e8df`
-### #7 — Support dynamic headers ✅ `b8fe4b7`
-### #8 — Silent mode for missing files ✅ `0a08eaa`
-### #9 — Images not displayed in embedded sections ✅ `cf4d4f4`
-### TD-1 — `MarkdownRenderer.renderMarkdown()` deprecated ✅ `cf4d4f4`
-### TD-3 — `@ts-ignore` on `getFileCache()` result ✅ `0e8951b`
-### TD-4 — `app` global removed from Obsidian 1.x types ✅ fixed
+*(released when next version is published)*
+
+| Task | Commit |
+|------|--------|
+| #3 — Misleading error: header empty vs. not found | `0e8951b` |
+| #4 — `getFileCache()` null guard | `0e8951b` |
+| #5 — Break after header match | `0e8951b` |
+| #6 — `position` array → typed object | `834e8df` |
+| #7 — Dynamic headers (`[[File#{{YYYY-MM-DD}}]]`) | `b8fe4b7` |
+| #8 — Silent mode setting | `0a08eaa` |
+| #9 — Images in embedded sections | `cf4d4f4` |
+| TD-1 — `MarkdownRenderer.renderMarkdown()` deprecated | `cf4d4f4` |
+| TD-2 — `minAppVersion` raised to `1.4.0` | (manifest) |
+| TD-3 — `@ts-ignore` removed | `0e8951b` |
+| TD-4 — `app` global fix | (older) |
