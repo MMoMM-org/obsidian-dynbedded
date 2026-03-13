@@ -1,3 +1,4 @@
 {
-  "debugLogging": false
+  "debugLogging": false,
+  "silentMode": false
 }
