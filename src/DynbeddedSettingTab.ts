@@ -3,11 +3,13 @@ import Dynbedded from './main';
 
 
 export interface DynbeddedSettings {
-	debugLogging: boolean
+	debugLogging: boolean;
+	silentMode: boolean;
 }
 
 export const DEFAULT_SETTINGS = {
-	debugLogging: false
+	debugLogging: false,
+	silentMode: false,
 };
 
 
@@ -48,6 +50,19 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 			},
 		});
 		coffeeImg.height = 45;
+
+		containerEl.createEl('h3', { text: 'Plugin Settings' });
+
+		new Setting(containerEl)
+			.setName('Enable Silent Mode')
+			.setDesc('When enabled, missing files or headers render as empty blocks instead of showing an error message.')
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.silentMode).onChange(async value => {
+					this.plugin.log("Silent Mode", value)
+					this.plugin.settings.silentMode = value;
+					await this.plugin.saveSettings();
+				})
+			);
 
 // Leave this alone!
 		containerEl.createEl('h3', { text: 'Developer Settings' });

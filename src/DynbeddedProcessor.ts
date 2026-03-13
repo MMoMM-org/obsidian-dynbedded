@@ -10,6 +10,12 @@ export class DynbeddedProcessor {
         this.app = app;
     }
 
+    private showError(el: HTMLElement, message: string) {
+        if (!this.plugin.settings.silentMode) {
+            Dynbedded.displayError(el, message);
+        }
+    }
+
     async render(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) {
 
         const fileNameMatchPattern = /\[\[([^\]]{2}.*)\]\]/u;
@@ -17,7 +23,7 @@ export class DynbeddedProcessor {
 
         this.plugin.log("FileNameMatch", fileNameMatch);
         if (!fileNameMatch) {
-            Dynbedded.displayError(el, "Bad file link: " + source);
+            this.showError(el, "Bad file link: " + source);
             return;
         }
 
@@ -30,7 +36,7 @@ export class DynbeddedProcessor {
             const {dynamicDateFormat, dynamicDate} = this.getDynamicDate(dynamicDateMatch);
             // Todo: figure out how to handle wrong formats correctly.. most formats are valid but create undesired results...
             if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
-                Dynbedded.displayError(el, "Not a valid Moment.js Time format: " + dynamicDateFormat);
+                this.showError(el, "Not a valid Moment.js Time format: " + dynamicDateFormat);
                 return;
             }
             fileName = fileName.replace(dynamicDateMatchPattern, dynamicDate);
@@ -47,12 +53,12 @@ export class DynbeddedProcessor {
         this.plugin.log("MatchingFile", matchingFile);
 
         if (!matchingFile) {
-            Dynbedded.displayError(el, "File link not found: [[" + fileName + "]]");
+            this.showError(el, "File link not found: [[" + fileName + "]]");
             return;
         }
         // Todo: could this be moved up?
         if (matchingFile.extension !== "md") {
-            Dynbedded.displayError(el, "Bad file extension found, expected markdown: " + matchingFile);
+            this.showError(el, "Bad file extension found, expected markdown: " + matchingFile);
             return;
         }
 
@@ -61,13 +67,13 @@ export class DynbeddedProcessor {
             // #4: guard against null cache (e.g. cache not yet built)
             const fileCache = this.app.metadataCache.getFileCache(matchingFile);
             if (!fileCache) {
-                Dynbedded.displayError(el, "File cache not available for [[" + fileName + "]]");
+                this.showError(el, "File cache not available for [[" + fileName + "]]");
                 return;
             }
             const headings = fileCache.headings;
             if (headings === null || headings === undefined) {
                 const errorMessage = "Header \"" + header + "\" not found in [[" + fileName + "]]";
-                Dynbedded.displayError(el, errorMessage);
+                this.showError(el, errorMessage);
                 return;
             }
             this.plugin.log("Headings", headings);
@@ -86,7 +92,7 @@ export class DynbeddedProcessor {
             }
             // #3: distinguish "not found" from "found but empty"
             if (position === undefined) {
-                Dynbedded.displayError(el, "Header \"" + header + "\" not found in [[" + fileName + "]]");
+                this.showError(el, "Header \"" + header + "\" not found in [[" + fileName + "]]");
                 return;
             }
             fileContents = await this.getHeaderSectionContent(matchingFile, position, fileContents);
