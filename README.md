@@ -29,7 +29,7 @@ will show the inline links of the current note, not the inline links of the note
 
 ![Dataview Inliks](images/40-01%20Dataview%20Inlinks.png)
 
-## Current Date substitution of note names
+## Current Date substitution of note names and headers
 
 ### Date Formatting 📅
 
