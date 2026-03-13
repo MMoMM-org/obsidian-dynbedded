@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.1.0...1.1.1) (2026-03-13)
+
+
+### Bug Fixes
+
+* update-vault now sets vault dates to today/yesterday instead of always adding +1 day ([37f252c](https://github.com/MMoMM-org/obsidian-dynbedded/commit/37f252cee9cd92df7a18433d936342b273b9d03d))
+
 # [1.1.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.0.0...1.1.0) (2026-03-13)
 
 
