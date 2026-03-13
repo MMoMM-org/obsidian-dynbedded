@@ -121,7 +121,12 @@ var DynbeddedProcessor = class {
     }
     let fileContents = "";
     if (header != "") {
-      const headings = this.app.metadataCache.getFileCache(matchingFile).headings;
+      const fileCache = this.app.metadataCache.getFileCache(matchingFile);
+      if (!fileCache) {
+        Dynbedded.displayError(el, "File cache not available for [[" + fileName + "]]");
+        return;
+      }
+      const headings = fileCache.headings;
       if (headings === null || headings === void 0) {
         const errorMessage = 'Header "' + header + '" not found in [[' + fileName + "]]";
         Dynbedded.displayError(el, errorMessage);
@@ -138,18 +143,19 @@ var DynbeddedProcessor = class {
           } else {
             position = [heading.position.start.line, headings[i + 1].position.start.line];
           }
+          break;
         }
       }
-      if (position) {
-        fileContents = await this.getHeaderSectionContent(matchingFile, position, fileContents);
+      if (position === void 0) {
+        Dynbedded.displayError(el, 'Header "' + header + '" not found in [[' + fileName + "]]");
+        return;
+      }
+      fileContents = await this.getHeaderSectionContent(matchingFile, position, fileContents);
+      if (fileContents == "") {
+        return;
       }
     } else {
       fileContents = await this.app.vault.cachedRead(matchingFile);
-    }
-    if (fileContents == "") {
-      const errorMessage = 'Header "' + header + '" not found in [[' + fileName + "]]";
-      Dynbedded.displayError(el, errorMessage);
-      return;
     }
     this.plugin.log("File", fileContents);
     const container = el.createDiv({ cls: [Dynbedded.containerClass] });

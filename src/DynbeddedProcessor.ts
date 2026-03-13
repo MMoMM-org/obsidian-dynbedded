@@ -58,15 +58,20 @@ export class DynbeddedProcessor {
 
         let fileContents = ""
         if (header != "") {
-            // @ts-ignore
-            const headings = this.app.metadataCache.getFileCache(matchingFile).headings;
+            // #4: guard against null cache (e.g. cache not yet built)
+            const fileCache = this.app.metadataCache.getFileCache(matchingFile);
+            if (!fileCache) {
+                Dynbedded.displayError(el, "File cache not available for [[" + fileName + "]]");
+                return;
+            }
+            const headings = fileCache.headings;
             if (headings === null || headings === undefined) {
                 const errorMessage = "Header \"" + header + "\" not found in [[" + fileName + "]]";
                 Dynbedded.displayError(el, errorMessage);
                 return;
             }
             this.plugin.log("Headings", headings);
-            let position;
+            let position: number[] | undefined;
             for (let i = 0; i < headings.length; i++) {
                 const heading = headings[i];
                 this.plugin.log("Heading", heading)
@@ -76,18 +81,21 @@ export class DynbeddedProcessor {
                     } else {
                         position = [heading.position.start.line, headings[i + 1].position.start.line];
                     }
+                    break; // #5: stop after first match
                 }
             }
-            if (position) {
-                fileContents = await this.getHeaderSectionContent(matchingFile, position, fileContents);
+            // #3: distinguish "not found" from "found but empty"
+            if (position === undefined) {
+                Dynbedded.displayError(el, "Header \"" + header + "\" not found in [[" + fileName + "]]");
+                return;
+            }
+            fileContents = await this.getHeaderSectionContent(matchingFile, position, fileContents);
+            if (fileContents == "") {
+                // Header exists but has no content — render nothing silently
+                return;
             }
         } else {
             fileContents = await this.app.vault.cachedRead(matchingFile);
-        }
-        if (fileContents == "") {
-            const errorMessage = "Header \"" + header + "\" not found in [[" + fileName + "]]";
-            Dynbedded.displayError(el, errorMessage);
-            return;
         }
         this.plugin.log("File", fileContents)
         const container = el.createDiv({cls: [Dynbedded.containerClass]});
