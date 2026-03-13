@@ -1,3 +1,19 @@
+# [1.1.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.0.0...1.1.0) (2026-03-13)
+
+
+### Bug Fixes
+
+* log suppressed errors to console when debug logging is enabled ([51eea60](https://github.com/MMoMM-org/obsidian-dynbedded/commit/51eea60e4fdc9d2a4fea693581997100b96e0b92))
+* null-guard getFileCache, break after header match, fix empty-header error ([#3](https://github.com/MMoMM-org/obsidian-dynbedded/issues/3) [#4](https://github.com/MMoMM-org/obsidian-dynbedded/issues/4) [#5](https://github.com/MMoMM-org/obsidian-dynbedded/issues/5)) ([0e8951b](https://github.com/MMoMM-org/obsidian-dynbedded/commit/0e8951b820f06a2b90c11c1b99a859ddc4b8ff99))
+* replace deprecated MarkdownRenderer.renderMarkdown with render (TD-1, fixes [#9](https://github.com/MMoMM-org/obsidian-dynbedded/issues/9)) ([cf4d4f4](https://github.com/MMoMM-org/obsidian-dynbedded/commit/cf4d4f41c4efa2c42e60f615ef31567a1d567389))
+
+
+### Features
+
+* add headerHierarchy flag to include subheadings in section embeds ([#2](https://github.com/MMoMM-org/obsidian-dynbedded/issues/2)) ([967cfbd](https://github.com/MMoMM-org/obsidian-dynbedded/commit/967cfbd037492890bd6f7fe5df0a02755f4538f4))
+* add silent mode setting to suppress error display ([#8](https://github.com/MMoMM-org/obsidian-dynbedded/issues/8)) ([0a08eaa](https://github.com/MMoMM-org/obsidian-dynbedded/commit/0a08eaa24ba89bc3ba5b6f2367f45034f21f29f6))
+* support dynamic date tokens in header references ([#7](https://github.com/MMoMM-org/obsidian-dynbedded/issues/7)) ([b8fe4b7](https://github.com/MMoMM-org/obsidian-dynbedded/commit/b8fe4b7770bfff823d334114389495caa5d6de8f))
+
 # 1.0.0 (2022-10-30)
 
 
