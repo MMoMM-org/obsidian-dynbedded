@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.1.3...1.1.4) (2026-03-13)
+
+
+### Bug Fixes
+
+* remove version-bump from prepareCmd to prevent double-execution ([dc39c1e](https://github.com/MMoMM-org/obsidian-dynbedded/commit/dc39c1e43598248a19cd9aac52a398e23e85a7b2))
+
 ## [1.1.3](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.1.2...1.1.3) (2026-03-13)
 
 
