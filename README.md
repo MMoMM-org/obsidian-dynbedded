@@ -52,6 +52,17 @@ Please Note 💡: You need to have the full note name inside the curly brackets,
 ```
 ~~~
 
+This will also work for the headers!
+
+e.g.
+~~~
+```dynbedded
+[[{{YYYY-MM-DD}}#{{YYYY-MM-DD}}]]
+```
+~~~
+
+
+
 ### Flexible Date 🚀📆
 
 You can also change the date to be used by "adding" a specific duration to the actual date, either as
@@ -64,7 +75,27 @@ e.g.
 [[{{YYYY-MM-DD|P-1D}}#Header is possible too]]
 ```
 ~~~
-will return the section of the note from "yesterday" starting with header "#Header is possible too"
+will return the section of the note from "yesterday" starting with header "#Header is possible too".
+
+This will also work for the headers!
+
+e.g.
+~~~
+```dynbedded
+[[{{YYYY-MM-DD|P-1D}}#{{YYYY-MM-DD|P-1D}}]]
+```
+~~~
+
+BTW: You can mix and match filename and headers too:
+
+
+e.g.
+~~~
+```dynbedded
+[[{{YYYY-MM-DD}}#{{YYYY-MM-DD|P-1D}}]]
+```
+~~~
+
 
 ## Styling
 
@@ -100,7 +131,7 @@ There are some limitations to the plugin (some might be overcome in the future, 
 - Checkboxes are displayed and can be checked but this is only fake. The original checkboxes are not checked! The same is true for Tasks from the Tasks Plugin. See [Working with other plugins](#Working with other plugins) for a workaround.
 - The links inside the code-block to embed the other notes data are NOT links, so if you rename your targeted note the connection breaks.
 - Dynbedded will not search for content between Header Levels, it will search for content between headers, see [Issue #2](https://github.com/MMoMM-org/obsidian-dynbedded/issues/2)
-- Dynbedded will not display images from embedded notes, see see [Issue #9](https://github.com/MMoMM-org/obsidian-dynbedded/issues/9)
+
 
 ## Possible P+1D features
 PS: No, I won't deliver those features tomorrow 😀

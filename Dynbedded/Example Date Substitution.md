@@ -98,6 +98,13 @@ Error Message because Header Part 4 is not found
 [[{{YYYY-MM-DD}}#Part4]]
 ```
 
+### dynbedded  [[Dynamic Header Test#{{YYYY-MM-DD|-2}}]]
+Error Message because the dynamic header with offset is not found
+
+```dynbedded
+[[Dynamic Header Test#{{YYYY-MM-DD|-2}}]]
+```
+
 ### dynbedded  [[{{really not a date format}}]]
 Moment.js is really forgiving while using custom date formating. Except to see a similar message most of the time if you mistype yourself in the format part.
 ```dynbedded
@@ -106,3 +113,10 @@ Moment.js is really forgiving while using custom date formating. Except to see a
 
 > There is also the following Error Message which could show up:
 > "Not a valid Moment.js Time Format:
+
+### dynbedded  [[Dynamic Header Test#{{YYYY-MM-DD|-2}}]]
+Error Message because the dynamic header with offset is not found
+
+```dynbedded
+[[Dynamic Header Test#{{YYYY-MM-DD|-2}}]]
+```

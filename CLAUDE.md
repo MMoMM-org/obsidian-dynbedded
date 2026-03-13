@@ -40,11 +40,12 @@ The test vault is `Dynbedded/` in the repo root. `npm run dev` writes directly i
 ### Rendering flow (`DynbeddedProcessor.render`)
 
 1. Extract `[[...]]` link from source
-2. If `{{...}}` present, resolve dynamic date → replace in filename
-3. If `#header` present, split off header name
-4. Resolve file via `app.metadataCache.getFirstLinkpathDest()`
-5. If header: find heading position in file cache, slice lines
-6. Render content via `MarkdownRenderer.renderMarkdown()`
+2. If `#header` present, split off header name (#7: before date substitution)
+3. If `{{...}}` present in filename, resolve dynamic date → replace in filename
+4. If `{{...}}` present in header, resolve dynamic date → replace in header (#7)
+5. Resolve file via `app.metadataCache.getFirstLinkpathDest()`
+6. If header: find heading position in file cache, slice lines
+7. Render content via `MarkdownRenderer.render()`
 
 ---
 

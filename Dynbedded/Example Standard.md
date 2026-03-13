@@ -94,7 +94,7 @@ Error Message because Header Part 4 is not found
 ```
 
 ### dynbedded [[A note with an empty header#Header One]]
-Error Message because the header is empty
+NO Error Message because the header is empty
 ```dynbedded
 [[A note with an empty header#Header One]]
 ```
