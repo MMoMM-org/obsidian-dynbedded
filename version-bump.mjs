@@ -1,6 +1,9 @@
 import { readFileSync, writeFileSync } from "fs";
 
-const targetVersion = process.env.npm_package_version;
+// npm_package_version is set when called via npm lifecycle scripts;
+// fall back to package.json when called directly (e.g. from semantic-release prepareCmd)
+const targetVersion = process.env.npm_package_version
+	?? JSON.parse(readFileSync("package.json", "utf8")).version;
 
 // read minAppVersion from manifest.json and bump version to target version
 let manifest = JSON.parse(readFileSync("manifest.json", "utf8"));
