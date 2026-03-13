@@ -14,13 +14,14 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = (process.argv[2] === 'production');
 const dev = (process.argv[2] === 'dev' || process.argv[3] === 'dev');
+const devbuild = (process.argv[2] === 'devbuild');
 const PLUGINS_PATH = '/.obsidian/plugins/';
 
 let outfile;
-if (!dev) {
-	outfile = './build/main.js';
-} else {
+if (dev || devbuild) {
 	outfile = TEST_VAULT + PLUGINS_PATH + PLUGIN_ID +'/main.js';
+} else {
+	outfile = './build/main.js';
 }
 
 const options = {

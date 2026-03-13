@@ -99,7 +99,7 @@ export class DynbeddedProcessor {
         }
         this.plugin.log("File", fileContents)
         const container = el.createDiv({cls: [Dynbedded.containerClass]});
-        await MarkdownRenderer.renderMarkdown(fileContents, container, ctx.sourcePath, this.plugin);
+        await MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, this.plugin);
     }
 
     private getDynamicDate(dynamicDateMatch: RegExpExecArray) {

@@ -159,7 +159,7 @@ var DynbeddedProcessor = class {
     }
     this.plugin.log("File", fileContents);
     const container = el.createDiv({ cls: [Dynbedded.containerClass] });
-    await import_obsidian2.MarkdownRenderer.renderMarkdown(fileContents, container, ctx.sourcePath, this.plugin);
+    await import_obsidian2.MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, this.plugin);
   }
   getDynamicDate(dynamicDateMatch) {
     let dynamicDateFormat = dynamicDateMatch[1];
