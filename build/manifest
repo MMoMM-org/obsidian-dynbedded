@@ -1,0 +1,10 @@
+{
+	"id": "obsidian-dynbedded",
+	"name": "Dynbedded",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Dynamic Embeds for Obsidian.md",
+	"author": "Marcus Breiden <marcus@mmomm.org>",
+	"authorUrl": "https://www.mmomm.org",
+	"isDesktopOnly": false
+}
