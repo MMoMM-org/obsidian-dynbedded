@@ -54,10 +54,10 @@ const options = {
 	outfile: outfile,
 	plugins: [
 		copy({
-			assets: {
-				from: ['./manifest.json', './styles.css'],
-				to: ['.'],
-			},
+			assets: [
+				{ from: './manifest.json', to: './manifest.json' },
+				{ from: './styles.css', to: './styles.css' },
+			],
 		}),
 	],
 };
