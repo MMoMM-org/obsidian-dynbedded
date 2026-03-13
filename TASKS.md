@@ -8,28 +8,18 @@ Sourced from [GitHub Issues](https://github.com/MMoMM-org/obsidian-dynbedded/iss
 
 ## Open
 
-### #2 — Header level hierarchy (opt-in via code block flag)
-By default the plugin stops a header section at the next heading of *any* level. With `headerHierarchy: true` it should stop only at a heading of equal or higher level, so subheadings are included.
-
-**Syntax:**
-```dynbedded
-[[File#Header]]
-headerHierarchy: true
-```
-
-- Absent or `false` → current behaviour (no change)
-- `true` → stop only at headings with `level <=` the matched heading's level
-
-**Where:** `DynbeddedProcessor.ts` → `render()`:
-1. Parse optional `headerHierarchy` flag from `source` (second line, if present)
-2. In the heading loop, when `headerHierarchy` is true, skip headings with `level >` matched heading's level when determining the end boundary
-3. Update README and test vault (`Dynbedded/`) with examples
+*(none)*
 
 ---
 
 ## Technical Debt
 
-*(none open)*
+### TD-5 — Upgrade GitHub Actions to Node.js 24
+`actions/checkout@v2` and `actions/setup-node@v2` run on Node.js 20, which GitHub will force-migrate to Node.js 24 by default from **June 2, 2026**. Upgrade both to v4.
+
+**Where:** `.github/workflows/release.yml`
+
+**Complexity: XS**
 
 ---
 
@@ -67,12 +57,11 @@ Allow `{{DWed}}` to resolve to this week's Wednesday, and `{{D-1Wed}}` to last w
 
 ---
 
-## Pending Confirmation
-
-*(released when next version is published)*
+## Done (released in v1.1.0)
 
 | Task | Commit |
 |------|--------|
+| #2 — Header level hierarchy (`headerHierarchy` flag) | `967cfbd` |
 | #3 — Misleading error: header empty vs. not found | `0e8951b` |
 | #4 — `getFileCache()` null guard | `0e8951b` |
 | #5 — Break after header match | `0e8951b` |
