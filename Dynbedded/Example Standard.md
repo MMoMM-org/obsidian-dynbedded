@@ -85,6 +85,23 @@ This also works 😀
 
 
 
+## Header Hierarchy Example
+
+### Without headerHierarchy (default)
+Only content up to the next heading of any level is shown — subheadings are not included.
+
+```dynbedded
+[[A note with 3 Headers and some checkboxes#Section With Subheadings]]
+```
+
+### With headerHierarchy: true
+Content up to the next heading of equal or higher level — subheadings are included.
+
+```dynbedded
+[[A note with 3 Headers and some checkboxes#Section With Subheadings]]
+headerHierarchy: true
+```
+
 ## Error Behaviour
 
 ### dynbedded [[A note with 3 Headers and some checkboxes#Header 4]]

@@ -97,6 +97,17 @@ e.g.
 ~~~
 
 
+## Header Hierarchy
+
+By default, a section ends at the next heading of any level. To include subheadings in the embedded section, add `headerHierarchy: true` as a second line:
+
+~~~
+```dynbedded
+[[MyNote#Section]]
+headerHierarchy: true
+```
+~~~
+
 ## Styling
 
 You can style the embedded content with a style sheet. The following styles are available:
@@ -130,7 +141,7 @@ Or if you are more the Video type of person take a look at the following video e
 There are some limitations to the plugin (some might be overcome in the future, some not.)
 - Checkboxes are displayed and can be checked but this is only fake. The original checkboxes are not checked! The same is true for Tasks from the Tasks Plugin. See [Working with other plugins](#Working with other plugins) for a workaround.
 - The links inside the code-block to embed the other notes data are NOT links, so if you rename your targeted note the connection breaks.
-- Dynbedded will not search for content between Header Levels, it will search for content between headers, see [Issue #2](https://github.com/MMoMM-org/obsidian-dynbedded/issues/2)
+- By default, Dynbedded stops at the next heading of any level when extracting a section. Use `headerHierarchy: true` to include subheadings. See [Issue #2](https://github.com/MMoMM-org/obsidian-dynbedded/issues/2).
 
 
 ## Possible P+1D features

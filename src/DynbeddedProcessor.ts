@@ -20,6 +20,9 @@ export class DynbeddedProcessor {
 
     async render(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) {
 
+        const headerHierarchy = /^headerHierarchy:\s*true\s*$/m.test(source);
+        this.plugin.log("HeaderHierarchy", headerHierarchy);
+
         const fileNameMatchPattern = /\[\[([^\]]{2}.*)\]\]/u;
         const fileNameMatch = fileNameMatchPattern.exec(source);
 
@@ -104,7 +107,19 @@ export class DynbeddedProcessor {
                 if (heading.heading == header) {
                     position = {
                         start: heading.position.start.line,
-                        end: i == headings.length - 1 ? -1 : headings[i + 1].position.start.line,
+                        end: (() => {
+                            if (!headerHierarchy) {
+                                // existing behaviour: stop at next heading of any level
+                                return i == headings.length - 1 ? -1 : headings[i + 1].position.start.line;
+                            }
+                            // #2: stop only at heading of equal or higher level (lower or equal level number)
+                            for (let j = i + 1; j < headings.length; j++) {
+                                if (headings[j].level <= heading.level) {
+                                    return headings[j].position.start.line;
+                                }
+                            }
+                            return -1; // no equal/higher heading found → rest of file
+                        })(),
                     };
                     break; // #5: stop after first match
                 }
