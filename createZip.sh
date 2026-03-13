@@ -1,3 +1,4 @@
+rm -rf $1
 mkdir $1
 cp -r build/*.* $1
 zip -r $1.zip $1

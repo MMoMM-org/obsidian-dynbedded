@@ -52,7 +52,9 @@ const options = {
 	sourcemap: prod ? false : 'inline',
 	treeShaking: true,
 	outfile: outfile,
-	plugins: [
+	// copy plugin only runs for dev/devbuild — production build artifacts are
+	// assembled explicitly by createZip.sh; build/ is not committed to git
+	plugins: prod ? [] : [
 		copy({
 			assets: [
 				{ from: './manifest.json', to: './manifest.json' },

@@ -58,20 +58,16 @@
 			[
 				"@semantic-release/exec",
 				{
-					"publishCmd": "./createZip.sh obsidian-dynbedded",
-					"prepareCmd": "npm run build"
+					"publishCmd": "./createZip.sh obsidian-dynbedded"
 				}
 			],
 			[
 				"@semantic-release/git",
 				{
 					"assets": [
-						"build/main.js",
-						"build/manifest.json",
-						"build/styles.css",
+						"manifest.json",
 						"versions.json",
 						"Changelog.md",
-						"manifest.json",
 						"package.json"
 					],
 					"message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
@@ -82,10 +78,20 @@
 				{
 					"assets": [
 						{
-							"path": "build/**"
+							"path": "build/main.js",
+							"label": "main.js"
 						},
 						{
-							"path": "./obsidian-dynbedded.zip"
+							"path": "build/manifest.json",
+							"label": "manifest.json"
+						},
+						{
+							"path": "build/styles.css",
+							"label": "styles.css"
+						},
+						{
+							"path": "./obsidian-dynbedded.zip",
+							"label": "obsidian-dynbedded.zip"
 						}
 					]
 				}
