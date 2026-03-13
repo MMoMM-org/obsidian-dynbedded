@@ -23,3 +23,11 @@ YESTERDAY=$(date -v-1d +%Y-%m-%d)
 ## Dev Build
 
 `npm run dev` — esbuild watch mode, auto-deploys to `Dynbedded/.obsidian/plugins/obsidian-dynbedded/` (main.js + manifest.json + styles.css). No manual copy needed.
+
+## Commit Conventions
+
+Use `closes #N` or `fixes #N` in commit messages (not just `(#N)`) so GitHub auto-closes the issue on merge to main. The `(#N)` bracket style is ignored by GitHub's issue-close parser.
+
+## TASKS.md Lifecycle
+
+Only committed-but-unreleased tasks belong in **Pending Confirmation**. Newly created GitHub issues for future features (not yet implemented) stay in **Open** or **Future Features** — they do not move to Pending Confirmation.
