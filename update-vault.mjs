@@ -62,11 +62,13 @@ export async function updateVault() {
     // sort headings descending, largest → today, second → yesterday
     const testFile = join(VAULT, 'Dynamic Header Test.md');
     const original = readFileSync(testFile, 'utf8');
+    // Sort ascending (oldest first) so each replacement can't accidentally match
+    // a date that was just written by a previous iteration.
+    // Pair: oldest date → yesterday, newest date → today.
     const dateHeadings = [...original.matchAll(/^(#{1,6} )(\d{4}-\d{2}-\d{2})$/gm)]
         .map(m => m[2])
-        .sort()
-        .reverse();                // [newest, oldest]
-    const targets = [todayStr, yesterdayStr];
+        .sort();                   // [oldest, newest]
+    const targets = [yesterdayStr, todayStr];
     let updated = original;
     for (let i = 0; i < dateHeadings.length && i < targets.length; i++) {
         updated = updated.replace(dateHeadings[i], targets[i]);
