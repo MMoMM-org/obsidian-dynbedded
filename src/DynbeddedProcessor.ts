@@ -11,7 +11,9 @@ export class DynbeddedProcessor {
     }
 
     private showError(el: HTMLElement, message: string) {
-        if (!this.plugin.settings.silentMode) {
+        if (this.plugin.settings.silentMode) {
+            this.plugin.log("Suppressed error:", message);
+        } else {
             Dynbedded.displayError(el, message);
         }
     }
