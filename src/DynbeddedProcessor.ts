@@ -30,12 +30,22 @@ export class DynbeddedProcessor {
         }
 
         let fileName = fileNameMatch[1];
-        const dynamicDateMatchPattern = /{{(.*)}}/;
-        const dynamicDateMatch = dynamicDateMatchPattern.exec(fileName);
-        this.plugin.log("DynamicDateMatch", dynamicDateMatch);
 
-        if (dynamicDateMatch !== null) {
-            const {dynamicDateFormat, dynamicDate} = this.getDynamicDate(dynamicDateMatch);
+        // #7: split BEFORE date substitution so each part can have its own {{...}} token
+        let header = "";
+        if (fileName.contains("#")) {
+            const __ret = this.splitFileName(fileName);
+            header = __ret.header;
+            fileName = __ret.fileName;
+        }
+
+        // Apply dynamic date substitution to fileName
+        const dynamicDateMatchPattern = /{{(.*)}}/;
+        const filenameDateMatch = dynamicDateMatchPattern.exec(fileName);
+        this.plugin.log("DynamicDateMatch (filename)", filenameDateMatch);
+
+        if (filenameDateMatch !== null) {
+            const {dynamicDateFormat, dynamicDate} = this.getDynamicDate(filenameDateMatch);
             // Todo: figure out how to handle wrong formats correctly.. most formats are valid but create undesired results...
             if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
                 this.showError(el, "Not a valid Moment.js Time format: " + dynamicDateFormat);
@@ -45,11 +55,19 @@ export class DynbeddedProcessor {
             this.plugin.log("DynamicFileName", fileName);
         }
 
-        let header = "";
-        if (fileName.contains("#")) {
-            const __ret = this.splitFileName(fileName);
-            header = __ret.header;
-            fileName = __ret.fileName;
+        // Apply dynamic date substitution to header (#7)
+        if (header !== "") {
+            const headerDateMatch = dynamicDateMatchPattern.exec(header);
+            this.plugin.log("DynamicDateMatch (header)", headerDateMatch);
+            if (headerDateMatch !== null) {
+                const {dynamicDateFormat, dynamicDate} = this.getDynamicDate(headerDateMatch);
+                if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
+                    this.showError(el, "Not a valid Moment.js Time format: " + dynamicDateFormat);
+                    return;
+                }
+                header = header.replace(dynamicDateMatchPattern, dynamicDate);
+                this.plugin.log("DynamicHeader", header);
+            }
         }
         const matchingFile = this.app.metadataCache.getFirstLinkpathDest(fileName, '');
         this.plugin.log("MatchingFile", matchingFile);

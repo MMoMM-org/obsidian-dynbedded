@@ -66,12 +66,28 @@ Show [[{{YYYY-MM-DD}}|P-1D]] **(Yesterday)** via dynbedded which will display th
 [[{{YYYY-MM-DD|P-1D}}]]
 ```
 
-### dynbedded  [[{{[DP-]YYYY-MM-DD|P-1D}}#This also works]]
+### dynbedded  [[{{YYYY-MM-DD|P-1D}}#This also works]]
 And of course it also works with something like this!
 Show **This also works** section of [[{{[DP-]YYYY-MM-DD|P-1D}}]] **(Yesterday)** via dynbedded.
 
 ```dynbedded
-[[{{[DP-]YYYY-MM-DD|P-1D}}#This also works]]
+[[{{YYYY-MM-DD|P-1D}}#This also works]]
+```
+
+## Dynamic Header Examples
+
+### dynbedded  [[Dynamic Header Test#{{YYYY-MM-DD}}]]
+Show today's section of [[Dynamic Header Test]] via dynbedded using a dynamic header.
+
+```dynbedded
+[[Dynamic Header Test#{{YYYY-MM-DD}}]]
+```
+
+### dynbedded  [[Dynamic Header Test#{{YYYY-MM-DD|-1}}]]
+Show yesterday's section of [[Dynamic Header Test]] via dynbedded using a dynamic header with offset.
+
+```dynbedded
+[[Dynamic Header Test#{{YYYY-MM-DD|-1}}]]
 ```
 
 ## Error Behaviour

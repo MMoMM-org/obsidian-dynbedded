@@ -1,6 +1,7 @@
 import esbuild from "esbuild";
 import builtins from 'builtin-modules'
 import {copy} from "esbuild-plugin-copy";
+import { updateVault } from './update-vault.mjs';
 
 const TEST_VAULT = 'Dynbedded';
 const PLUGIN_ID = 'obsidian-dynbedded';
@@ -65,5 +66,6 @@ if (dev) {
 	const ctx = await esbuild.context(options);
 	await ctx.watch();
 } else {
+	if (devbuild) await updateVault();
 	await esbuild.build(options).catch(() => process.exit(1));
 }
