@@ -21,6 +21,22 @@ Sourced from [GitHub Issues](https://github.com/MMoMM-org/obsidian-dynbedded/iss
 
 **Complexity: XS**
 
+### TD-6 — Auto-close issues and apply labels on release
+
+Issues are currently closed manually after a release. Issue #9 was closed automatically because its commit contained `fixes #9` — the others only had `(#N)` in brackets, which GitHub doesn't recognise as a closing keyword.
+
+Two things to fix:
+
+1. **Commit convention:** Always use `closes #N` or `fixes #N` in commit messages (not just `(#N)`) so GitHub closes the issue automatically on merge to main.
+
+2. **Released label:** Add a workflow step (or semantic-release plugin) that applies a `released` / `fixed` label to all issues closed by a release. Options:
+   - [`semantic-release/github`](https://github.com/semantic-release/github) plugin already supports `successComment` and `releasedLabels` config — check if it's wired up in `.releaserc` or `package.json`
+   - Alternatively, a small post-release GitHub Actions step using `gh issue edit --add-label released`
+
+**Where:** `.github/workflows/release.yml`, commit message convention, optional `.releaserc`
+
+**Complexity: XS–S**
+
 ---
 
 ## Future Features (P+1D)
