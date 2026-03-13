@@ -93,6 +93,13 @@ Error Message because Header Part 4 is not found
 [[A note with 3 Headers and some checkboxes#Header 4]]
 ```
 
+### dynbedded [[A note with an empty header#Header One]]
+Error Message because the header is empty
+```dynbedded
+[[A note with an empty header#Header One]]
+```
+
+
 # dynbedded [[NotAMarkdownFile.jpeg]]
 Error Message for wrong file extension
 ```dynbedded
@@ -104,4 +111,17 @@ Error Message for note not found
 
 ```dynbedded
 [[ThisNoteDoesNotExist]]
+```
+
+# dynbedded [[A Note with an Image]]
+
+```dynbedded
+[[A Note with an Image]]
+```
+
+
+# dynbedded [[A Note with an Image#Image]]
+
+```dynbedded
+[[A Note with an Image#Image]]
 ```
