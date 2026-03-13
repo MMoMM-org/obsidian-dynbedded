@@ -59,7 +59,7 @@
 				"@semantic-release/exec",
 				{
 					"publishCmd": "./createZip.sh obsidian-dynbedded",
-					"prepareCmd": "node version-bump.mjs && npm run build"
+					"prepareCmd": "npm run build"
 				}
 			],
 			[
