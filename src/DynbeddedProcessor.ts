@@ -79,16 +79,15 @@ export class DynbeddedProcessor {
                 return;
             }
             this.plugin.log("Headings", headings);
-            let position: number[] | undefined;
+            let position: {start: number, end: number} | undefined;
             for (let i = 0; i < headings.length; i++) {
                 const heading = headings[i];
                 this.plugin.log("Heading", heading)
                 if (heading.heading == header) {
-                    if (i == headings.length - 1) {
-                        position = [heading.position.start.line, -1];
-                    } else {
-                        position = [heading.position.start.line, headings[i + 1].position.start.line];
-                    }
+                    position = {
+                        start: heading.position.start.line,
+                        end: i == headings.length - 1 ? -1 : headings[i + 1].position.start.line,
+                    };
                     break; // #5: stop after first match
                 }
             }
@@ -133,14 +132,14 @@ export class DynbeddedProcessor {
         return {dynamicDateFormat, dynamicDate};
     }
 
-    private async getHeaderSectionContent(matchingFile: TFile, position: number[], fileContents: string) {
+    private async getHeaderSectionContent(matchingFile: TFile, position: {start: number, end: number}, fileContents: string) {
         let text = await this.app.vault.cachedRead(matchingFile)
         if (!text.endsWith("\n")) {
             text = text + "\n"
         }
         this.plugin.log("Position", position);
         this.plugin.log("Text", text);
-        fileContents = text.split("\n").slice(position[0] + 1, position[1]).join("\n");
+        fileContents = text.split("\n").slice(position.start + 1, position.end).join("\n");
         this.plugin.log("Split", fileContents)
         return fileContents;
     }
