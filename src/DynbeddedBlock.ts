@@ -4,7 +4,6 @@ import { DynbeddedProcessor } from './DynbeddedProcessor';
 
 export class DynbeddedBlock extends MarkdownRenderChild {
     private source: string;
-    private app: App;
     private plugin: Dynbedded;
     private ctx: MarkdownPostProcessorContext;
     private processor: DynbeddedProcessor;
@@ -18,7 +17,6 @@ export class DynbeddedBlock extends MarkdownRenderChild {
     ) {
         super(containerEl);
         this.source = source;
-        this.app = app;
         this.plugin = plugin;
         this.ctx = ctx;
         this.processor = new DynbeddedProcessor(app, plugin);
