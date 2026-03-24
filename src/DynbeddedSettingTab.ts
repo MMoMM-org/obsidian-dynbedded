@@ -68,7 +68,38 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 				})
 			);
 
+		let intervalSetting: Setting;
+
+		new Setting(containerEl)
+			.setName('Enable Auto-Refresh')
+			.setDesc('Automatically re-render dynbedded blocks at a set interval. Changes take effect when the note is reopened.')
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.autoRefresh).onChange(async value => {
+					this.plugin.log("Auto Refresh", value);
+					this.plugin.settings.autoRefresh = value;
+					await this.plugin.saveSettings();
+					intervalSetting.setDisabled(!value);
+				})
+			);
+
+		intervalSetting = new Setting(containerEl)
+			.setName('Refresh Interval (seconds)')
+			.setDesc('How often to re-render dynbedded blocks (10–3600 seconds).')
+			.addText(text =>
+				text
+					.setValue(String(this.plugin.settings.refreshIntervalSeconds))
+					.onChange(async value => {
+						const parsed = parseInt(value, 10);
+						if (!isNaN(parsed)) {
+							this.plugin.settings.refreshIntervalSeconds = Math.max(10, Math.min(3600, parsed));
+							await this.plugin.saveSettings();
+						}
+					})
+			);
+		intervalSetting.setDisabled(!this.plugin.settings.autoRefresh);
+
 // Leave this alone!
+		containerEl.createEl('hr');
 		containerEl.createEl('h3', { text: 'Developer Settings' });
 
 		new Setting(containerEl)
