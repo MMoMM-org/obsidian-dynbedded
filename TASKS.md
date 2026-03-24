@@ -39,14 +39,6 @@ Two things to fix:
 
 ---
 
-## Pending Confirmation
-
-| Task | Branch |
-|------|--------|
-| F-1 — Automatic Refresh of Embeds | `feature/auto-refresh` |
-
----
-
 ## Future Features (P+1D)
 
 ### F-2 — Day name as relative date (`DWed`, `D-1Wed`)
@@ -59,6 +51,12 @@ Allow `{{DWed}}` to resolve to this week's Wednesday, and `{{D-1Wed}}` to last w
 **Complexity: Low**
 
 ---
+
+## Done (released in v1.2.0)
+
+| Task | Commit |
+|------|--------|
+| F-1 — Automatic Refresh of Embeds | `acb0b93` |
 
 ## Done (released in v1.1.0)
 

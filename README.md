@@ -144,10 +144,15 @@ There are some limitations to the plugin (some might be overcome in the future, 
 - By default, Dynbedded stops at the next heading of any level when extracting a section. Use `headerHierarchy: true` to include subheadings. See [Issue #2](https://github.com/MMoMM-org/obsidian-dynbedded/issues/2).
 
 
+## Auto-Refresh
+
+Dynbedded blocks can automatically re-render at a configurable interval — useful for date-based embeds that should update without reopening the note.
+
+Enable **Auto-Refresh** in the plugin settings and set the desired interval (10–3600 seconds, default 60). The setting is off by default and changes take effect when the note is reopened.
+
 ## Possible P+1D features
 PS: No, I won't deliver those features tomorrow 😀
 
-- Automatic Refresh of Embeds
 - Name of the day as relative dates, e.g. DWed for this week Wednesday
 - Relative name of the day as relative dates, e.g. D-1Wed for last week Wednesday
 
