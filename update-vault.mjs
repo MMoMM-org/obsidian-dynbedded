@@ -58,6 +58,36 @@ export async function updateVault() {
         console.log(`update-vault: ${from.split('/').pop()} → ${to.split('/').pop()}`);
     }
 
+    // Update date links in readme files
+    const readmeFiles = [
+        join(VAULT, '1. Readme English.md'),
+        join(VAULT, '1. Liesmich Deutsch.md'),
+    ];
+    for (const readme of readmeFiles) {
+        let content;
+        try { content = readFileSync(readme, 'utf8'); } catch { continue; }
+
+        // Extract current plain date links (first = today, last = yesterday)
+        const plainMatches = [...content.matchAll(/\[\[(\d{4}-\d{2}-\d{2})\]\]/g)].map(m => m[1]);
+        const oldTodayDate = plainMatches[0];
+        const oldYesterdayDate = plainMatches[plainMatches.length - 1];
+
+        let readmeUpdated = content;
+        readmeUpdated = readmeUpdated.replace(/\[\[DP-\d{4}-\d{2}-\d{2}\]\]/g, `[[DP-${todayStr}]]`);
+        readmeUpdated = readmeUpdated.replace(/\[\[\d{4}-\d{2}-\d{2} Not To be Found\]\]/g, `[[${todayStr} Not To be Found]]`);
+        // Two-pass plain date replacement to avoid collisions
+        if (oldTodayDate && oldTodayDate !== todayStr)
+            readmeUpdated = readmeUpdated.replace(new RegExp(`\\[\\[${oldTodayDate}\\]\\]`, 'g'), '[[__VAULT_TODAY__]]');
+        if (oldYesterdayDate && oldYesterdayDate !== yesterdayStr)
+            readmeUpdated = readmeUpdated.replace(new RegExp(`\\[\\[${oldYesterdayDate}\\]\\]`, 'g'), `[[${yesterdayStr}]]`);
+        readmeUpdated = readmeUpdated.replace(/\[\[__VAULT_TODAY__\]\]/g, `[[${todayStr}]]`);
+
+        if (readmeUpdated !== content) {
+            writeFileSync(readme, readmeUpdated, 'utf8');
+            console.log(`update-vault: updated date links in ${readme.split('/').pop()}`);
+        }
+    }
+
     // Update date headings in Dynamic Header Test.md:
     // sort headings descending, largest → today, second → yesterday
     const testFile = join(VAULT, 'Dynamic Header Test.md');
