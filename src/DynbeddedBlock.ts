@@ -7,6 +7,7 @@ export class DynbeddedBlock extends MarkdownRenderChild {
     private plugin: Dynbedded;
     private ctx: MarkdownPostProcessorContext;
     private processor: DynbeddedProcessor;
+    private isRendering = false;
 
     constructor(
         containerEl: HTMLElement,
@@ -32,7 +33,10 @@ export class DynbeddedBlock extends MarkdownRenderChild {
     }
 
     private async rerender() {
+        if (this.isRendering) return;
+        this.isRendering = true;
         this.containerEl.empty();
         await this.processor.render(this.source, this.containerEl, this.ctx);
+        this.isRendering = false;
     }
 }
