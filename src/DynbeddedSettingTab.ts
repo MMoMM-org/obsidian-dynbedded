@@ -90,12 +90,15 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 					.setValue(String(this.plugin.settings.refreshIntervalSeconds))
 					.onChange(async value => {
 						const parsed = parseInt(value, 10);
-						if (!isNaN(parsed)) {
-							this.plugin.settings.refreshIntervalSeconds = Math.max(10, Math.min(3600, parsed));
+						if (!isNaN(parsed) && parsed >= 10 && parsed <= 3600) {
+							this.plugin.settings.refreshIntervalSeconds = parsed;
 							await this.plugin.saveSettings();
-							text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
 						}
 					});
+				// Show clamped/stored value only after the user leaves the field
+				text.inputEl.addEventListener('blur', () => {
+					text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
+				});
 			});
 		intervalSetting.setDisabled(!this.plugin.settings.autoRefresh);
 
