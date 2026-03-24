@@ -1,3 +1,22 @@
+# [1.2.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.1.4...1.2.0) (2026-03-24)
+
+
+### Bug Fixes
+
+* allow free typing in refresh interval field, validate on blur ([7d2d1e1](https://github.com/MMoMM-org/obsidian-dynbedded/commit/7d2d1e1946be6b6a679fb079a2990cf9c23a5dde))
+* guard rerender() against concurrent execution with isRendering flag ([c9ac201](https://github.com/MMoMM-org/obsidian-dynbedded/commit/c9ac20176b076aee223004b498fff39c7170ba29))
+* remove unused app field in DynbeddedBlock ([f428c01](https://github.com/MMoMM-org/obsidian-dynbedded/commit/f428c01279a14e14895a2efbc5be4a0225c33e64))
+* save and clamp refresh interval only on blur, not on each keystroke ([acb0b93](https://github.com/MMoMM-org/obsidian-dynbedded/commit/acb0b937f8048097278690f22daf60764b0c4444))
+* update interval input field to show clamped value after save ([6818538](https://github.com/MMoMM-org/obsidian-dynbedded/commit/68185383f0b78bb57797f7cb72a56d22c4ec3819))
+
+
+### Features
+
+* add auto-refresh settings UI with separator line ([f7d85b3](https://github.com/MMoMM-org/obsidian-dynbedded/commit/f7d85b3567f56928fe6418ff46aae7d662af1f74))
+* add autoRefresh and refreshIntervalSeconds settings fields ([ae40833](https://github.com/MMoMM-org/obsidian-dynbedded/commit/ae40833609bd7705d2c9170b67d68b0249ecd1a3))
+* add DynbeddedBlock MarkdownRenderChild with auto-refresh interval ([0889dcb](https://github.com/MMoMM-org/obsidian-dynbedded/commit/0889dcb7eead5db0b2d989e35dfa2f139ff482b6))
+* wire DynbeddedBlock into registerMarkdownCodeBlockProcessor ([ddafe81](https://github.com/MMoMM-org/obsidian-dynbedded/commit/ddafe81bb400a2699f2542cf17a9d75691c249b3))
+
 ## [1.1.4](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.1.3...1.1.4) (2026-03-13)
 
 
