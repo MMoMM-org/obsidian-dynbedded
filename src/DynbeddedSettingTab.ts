@@ -5,11 +5,15 @@ import Dynbedded from './main';
 export interface DynbeddedSettings {
 	debugLogging: boolean;
 	silentMode: boolean;
+	autoRefresh: boolean;
+	refreshIntervalSeconds: number;
 }
 
 export const DEFAULT_SETTINGS = {
 	debugLogging: false,
 	silentMode: false,
+	autoRefresh: false,
+	refreshIntervalSeconds: 60,
 };
 
 
