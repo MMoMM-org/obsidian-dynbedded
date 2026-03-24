@@ -39,28 +39,15 @@ Two things to fix:
 
 ---
 
+## Pending Confirmation
+
+| Task | Branch |
+|------|--------|
+| F-1 — Automatic Refresh of Embeds | `feature/auto-refresh` |
+
+---
+
 ## Future Features (P+1D)
-
-### F-1 — Automatic Refresh of Embeds (configurable interval)
-Auto-refresh dynbedded blocks at a configurable interval so date-based embeds update without reopening the note.
-
-**Behaviour:**
-- Only active when the note contains at least one `dynbedded` code block
-- Default interval: 60 seconds, configurable in settings
-- Opt-in via a checkbox in the settings tab ("Enable auto-refresh")
-- Each block manages its own timer independently via `MarkdownRenderChild` — no global state needed
-
-**Implementation approach:**
-- Refactor `DynbeddedProcessor.render()` to return/use a `MarkdownRenderChild` subclass (e.g. `DynbeddedBlock`)
-- In `DynbeddedBlock.onload()`: run initial render, then `this.registerInterval(window.setInterval(() => this.render(), intervalMs))`
-- `onunload()` is automatic — Obsidian clears the interval when the block leaves the DOM
-- Only set the interval when auto-refresh is enabled in settings AND the source contains `{{...}}` (date substitution), to avoid unnecessary re-renders on static embeds
-
-**Settings changes (`DynbeddedSettingTab.ts`):**
-- Add `autoRefresh: boolean` (default `false`)
-- Add `refreshIntervalSeconds: number` (default `60`)
-
-**Complexity: Medium**
 
 ### F-2 — Day name as relative date (`DWed`, `D-1Wed`)
 Allow `{{DWed}}` to resolve to this week's Wednesday, and `{{D-1Wed}}` to last week's Wednesday.
