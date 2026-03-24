@@ -86,18 +86,15 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 			.setName('Refresh Interval (seconds)')
 			.setDesc('How often to re-render dynbedded blocks (10–3600 seconds).')
 			.addText(text => {
-				text
-					.setValue(String(this.plugin.settings.refreshIntervalSeconds))
-					.onChange(async value => {
-						const parsed = parseInt(value, 10);
-						if (!isNaN(parsed) && parsed >= 10 && parsed <= 3600) {
-							this.plugin.settings.refreshIntervalSeconds = parsed;
-							await this.plugin.saveSettings();
-						}
-					});
-				// Show clamped/stored value only after the user leaves the field
-				text.inputEl.addEventListener('blur', () => {
-					text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
+				text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
+				// Save and clamp only when the user leaves the field
+				text.inputEl.addEventListener('blur', async () => {
+					const parsed = parseInt(text.getValue(), 10);
+					const clamped = isNaN(parsed) ? this.plugin.settings.refreshIntervalSeconds
+					                              : Math.max(10, Math.min(3600, parsed));
+					this.plugin.settings.refreshIntervalSeconds = clamped;
+					await this.plugin.saveSettings();
+					text.setValue(String(clamped));
 				});
 			});
 		intervalSetting.setDisabled(!this.plugin.settings.autoRefresh);
