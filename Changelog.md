@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.2.0...1.2.1) (2026-03-24)
+
+
+### Bug Fixes
+
+* include manifest.json and styles.css in production build output ([933e25a](https://github.com/MMoMM-org/obsidian-dynbedded/commit/933e25aee0d9501508a664db8584e86e60f7fd8b))
+
 # [1.2.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.1.4...1.2.0) (2026-03-24)
 
 
