@@ -85,7 +85,7 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 		intervalSetting = new Setting(containerEl)
 			.setName('Refresh Interval (seconds)')
 			.setDesc('How often to re-render dynbedded blocks (10–3600 seconds).')
-			.addText(text =>
+			.addText(text => {
 				text
 					.setValue(String(this.plugin.settings.refreshIntervalSeconds))
 					.onChange(async value => {
@@ -93,9 +93,10 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 						if (!isNaN(parsed)) {
 							this.plugin.settings.refreshIntervalSeconds = Math.max(10, Math.min(3600, parsed));
 							await this.plugin.saveSettings();
+							text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
 						}
-					})
-			);
+					});
+			});
 		intervalSetting.setDisabled(!this.plugin.settings.autoRefresh);
 
 // Leave this alone!
