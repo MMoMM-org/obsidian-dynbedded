@@ -5,11 +5,15 @@ import Dynbedded from './main';
 export interface DynbeddedSettings {
 	debugLogging: boolean;
 	silentMode: boolean;
+	autoRefresh: boolean;
+	refreshIntervalSeconds: number;
 }
 
 export const DEFAULT_SETTINGS = {
 	debugLogging: false,
 	silentMode: false,
+	autoRefresh: false,
+	refreshIntervalSeconds: 60,
 };
 
 
@@ -64,7 +68,39 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 				})
 			);
 
+		let intervalSetting: Setting;
+
+		new Setting(containerEl)
+			.setName('Enable Auto-Refresh')
+			.setDesc('Automatically re-render dynbedded blocks at a set interval. Changes take effect when the note is reopened.')
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.autoRefresh).onChange(async value => {
+					this.plugin.log("Auto Refresh", value);
+					this.plugin.settings.autoRefresh = value;
+					await this.plugin.saveSettings();
+					intervalSetting.setDisabled(!value);
+				})
+			);
+
+		intervalSetting = new Setting(containerEl)
+			.setName('Refresh Interval (seconds)')
+			.setDesc('How often to re-render dynbedded blocks (10–3600 seconds).')
+			.addText(text => {
+				text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
+				// Save and clamp only when the user leaves the field
+				text.inputEl.addEventListener('blur', async () => {
+					const parsed = parseInt(text.getValue(), 10);
+					const clamped = isNaN(parsed) ? this.plugin.settings.refreshIntervalSeconds
+					                              : Math.max(10, Math.min(3600, parsed));
+					this.plugin.settings.refreshIntervalSeconds = clamped;
+					await this.plugin.saveSettings();
+					text.setValue(String(clamped));
+				});
+			});
+		intervalSetting.setDisabled(!this.plugin.settings.autoRefresh);
+
 // Leave this alone!
+		containerEl.createEl('hr');
 		containerEl.createEl('h3', { text: 'Developer Settings' });
 
 		new Setting(containerEl)

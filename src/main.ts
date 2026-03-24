@@ -1,6 +1,6 @@
 import {Plugin} from 'obsidian';
 import {DEFAULT_SETTINGS, DynbeddedSettings, DynbeddedSettingTab} from './DynbeddedSettingTab';
-import {DynbeddedProcessor} from './DynbeddedProcessor';
+import { DynbeddedBlock } from './DynbeddedBlock';
 
 type LogType = typeof console.log;
 
@@ -23,19 +23,17 @@ export default class Dynbedded extends Plugin {
 		parent.createEl("pre", { text: "Dynbedded: Error: " + text, cls: [Dynbedded.containerClass, Dynbedded.errorClass] });
 	}
 
-	dynbeddedProcessor: DynbeddedProcessor;
-
 	async onload() {
 		await this.loadSettings();
 		this.log("Loading Plugin")
-
-		this.dynbeddedProcessor = new DynbeddedProcessor(this.app, this);
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new DynbeddedSettingTab(this.app, this));
 
 		// Registering the CodeBlockProcessor
-		this.registerMarkdownCodeBlockProcessor(Dynbedded.codeBlockKeyword, async (source, el, ctx) => {this.dynbeddedProcessor.render(source,el, ctx)});
+		this.registerMarkdownCodeBlockProcessor(Dynbedded.codeBlockKeyword, async (source, el, ctx) => {
+			ctx.addChild(new DynbeddedBlock(el, source, this.app, this, ctx));
+		});
 	}
 
 	onunload() {
