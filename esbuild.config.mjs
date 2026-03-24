@@ -52,9 +52,9 @@ const options = {
 	sourcemap: prod ? false : 'inline',
 	treeShaking: true,
 	outfile: outfile,
-	// copy plugin only runs for dev/devbuild — production build artifacts are
-	// assembled explicitly by createZip.sh; build/ is not committed to git
-	plugins: prod ? [] : [
+	// copy plugin copies manifest.json and styles.css alongside main.js
+	// (dev/devbuild → test vault; production → build/ for release upload and zip)
+	plugins: [
 		copy({
 			assets: [
 				{ from: './manifest.json', to: './manifest.json' },
