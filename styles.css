@@ -8,3 +8,11 @@
     margin-bottom: 20px;
 
 }
+/* Make disabled inputs in plugin settings unmistakably non-editable.
+   Some platforms (Windows / Electron) render the native :disabled style
+   too subtly, so users could not tell the field was gated. */
+.dynbedded-disabled-input {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background: var(--background-modifier-form-field) !important;
+}

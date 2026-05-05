@@ -71,6 +71,16 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 		let intervalSetting: Setting;
 		let intervalText: TextComponent;
 
+		const intervalDescEnabled  = 'How often to re-render dynbedded blocks (10–3600 seconds).';
+		const intervalDescDisabled = 'Enable Auto-Refresh above to change this value (10–3600 seconds).';
+
+		const applyIntervalDisabled = (disabled: boolean) => {
+			intervalText.setDisabled(disabled);
+			intervalSetting.setDisabled(disabled);
+			intervalSetting.setDesc(disabled ? intervalDescDisabled : intervalDescEnabled);
+			intervalText.inputEl.toggleClass('dynbedded-disabled-input', disabled);
+		};
+
 		new Setting(containerEl)
 			.setName('Enable Auto-Refresh')
 			.setDesc('Automatically re-render dynbedded blocks at a set interval. Changes take effect when the note is reopened.')
@@ -79,18 +89,15 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 					this.plugin.log("Auto Refresh", value);
 					this.plugin.settings.autoRefresh = value;
 					await this.plugin.saveSettings();
-					intervalText.setDisabled(!value);
-					intervalSetting.setDisabled(!value);
+					applyIntervalDisabled(!value);
 				})
 			);
 
 		intervalSetting = new Setting(containerEl)
 			.setName('Refresh Interval (seconds)')
-			.setDesc('How often to re-render dynbedded blocks (10–3600 seconds).')
 			.addText(text => {
 				intervalText = text;
 				text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
-				text.setDisabled(!this.plugin.settings.autoRefresh);
 				// Save and clamp only when the user leaves the field
 				text.inputEl.addEventListener('blur', async () => {
 					const parsed = parseInt(text.getValue(), 10);
@@ -101,7 +108,7 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 					text.setValue(String(clamped));
 				});
 			});
-		intervalSetting.setDisabled(!this.plugin.settings.autoRefresh);
+		applyIntervalDisabled(!this.plugin.settings.autoRefresh);
 
 // Leave this alone!
 		containerEl.createEl('hr');
