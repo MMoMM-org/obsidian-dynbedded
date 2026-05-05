@@ -14,10 +14,14 @@ Sourced from [GitHub Issues](https://github.com/MMoMM-org/obsidian-dynbedded/iss
 
 ## Pending Confirmation
 
-### #13 — Refresh Interval Seconds can't be changed (Windows / Blue Topaz)
-`Setting.setDisabled()` only toggles the `is-disabled` CSS class on the wrapper; it does not set the native HTML `disabled` attribute on the input. The Blue Topaz theme on Windows applies `pointer-events: none` aggressively under that class, blocking interaction with the field. Fixed by also calling `TextComponent.setDisabled()` on the text component itself, which sets `inputEl.disabled` (browser-enforced, theme-independent).
+### #13 — Refresh Interval Seconds can't be changed
+Two parts:
 
-**Where:** `src/DynbeddedSettingTab.ts`
+1. **Disabled state on Windows (released in 1.2.2):** `Setting.setDisabled()` only toggles the `is-disabled` CSS class on the wrapper; it does not set the native HTML `disabled` attribute on the input. Fixed by also calling `TextComponent.setDisabled()` so `inputEl.disabled` is browser-enforced.
+
+2. **Visual feedback when gated:** Field was technically disabled when Auto-Refresh was off, but the styling was too subtle on some platforms (Windows / Electron) — users couldn't tell the field was gated by the toggle and reported it as broken. Added an explicit description swap (*"Enable Auto-Refresh above to change this value"*) plus a CSS rule that lowers opacity and shows a `not-allowed` cursor on the disabled input.
+
+**Where:** `src/DynbeddedSettingTab.ts`, `styles.css`
 
 **Complexity: XS**
 
