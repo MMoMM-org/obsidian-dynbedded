@@ -14,8 +14,12 @@ Sourced from [GitHub Issues](https://github.com/MMoMM-org/obsidian-dynbedded/iss
 
 ## Pending Confirmation
 
-### #13 — Refresh Interval Seconds can't be changed (Windows / Blue Topaz)
-`Setting.setDisabled()` only toggles the `is-disabled` CSS class on the wrapper; it does not set the native HTML `disabled` attribute on the input. The Blue Topaz theme on Windows applies `pointer-events: none` aggressively under that class, blocking interaction with the field. Fixed by also calling `TextComponent.setDisabled()` on the text component itself, which sets `inputEl.disabled` (browser-enforced, theme-independent).
+### #13 — Refresh Interval Seconds can't be changed (Windows)
+Two bugs combined into one symptom on Windows:
+
+1. **Disabled state (released in 1.2.2):** `Setting.setDisabled()` only toggles the `is-disabled` CSS class on the wrapper; it does not set the native HTML `disabled` attribute on the input. Fixed by also calling `TextComponent.setDisabled()` so `inputEl.disabled` is browser-enforced and theme-independent.
+
+2. **Save on blur unreliable on Windows:** When the settings modal closes, the input can be torn down before its `blur` event fires (Windows/Electron timing), so typed values were lost. Switched to saving on `input` (every keystroke) and using `blur` only to sync the displayed value with the clamped saved value. Avoids cursor-jump while typing because the displayed text is left alone during input — only the saved value is clamped.
 
 **Where:** `src/DynbeddedSettingTab.ts`
 

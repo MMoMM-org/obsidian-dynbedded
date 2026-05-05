@@ -91,14 +91,19 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 				intervalText = text;
 				text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
 				text.setDisabled(!this.plugin.settings.autoRefresh);
-				// Save and clamp only when the user leaves the field
-				text.inputEl.addEventListener('blur', async () => {
+				// Save on every keystroke — blur is unreliable on Windows when the
+				// settings modal closes (the input can be torn down before blur fires).
+				// We save the clamped value but leave the displayed text alone so the
+				// user can keep typing without the field jumping under their cursor.
+				text.inputEl.addEventListener('input', async () => {
 					const parsed = parseInt(text.getValue(), 10);
-					const clamped = isNaN(parsed) ? this.plugin.settings.refreshIntervalSeconds
-					                              : Math.max(10, Math.min(3600, parsed));
-					this.plugin.settings.refreshIntervalSeconds = clamped;
+					if (isNaN(parsed)) return;
+					this.plugin.settings.refreshIntervalSeconds = Math.max(10, Math.min(3600, parsed));
 					await this.plugin.saveSettings();
-					text.setValue(String(clamped));
+				});
+				// On blur, sync the displayed text with the (possibly clamped) saved value.
+				text.inputEl.addEventListener('blur', () => {
+					text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
 				});
 			});
 		intervalSetting.setDisabled(!this.plugin.settings.autoRefresh);
