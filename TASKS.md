@@ -12,6 +12,17 @@ Sourced from [GitHub Issues](https://github.com/MMoMM-org/obsidian-dynbedded/iss
 
 ---
 
+## Pending Confirmation
+
+### #13 — Refresh Interval Seconds can't be changed (Windows / Blue Topaz)
+`Setting.setDisabled()` only toggles the `is-disabled` CSS class on the wrapper; it does not set the native HTML `disabled` attribute on the input. The Blue Topaz theme on Windows applies `pointer-events: none` aggressively under that class, blocking interaction with the field. Fixed by also calling `TextComponent.setDisabled()` on the text component itself, which sets `inputEl.disabled` (browser-enforced, theme-independent).
+
+**Where:** `src/DynbeddedSettingTab.ts`
+
+**Complexity: XS**
+
+---
+
 ## Technical Debt
 
 ### TD-5 — Upgrade GitHub Actions to Node.js 24

@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, Setting, TextComponent } from 'obsidian';
 import Dynbedded from './main';
 
 
@@ -69,6 +69,7 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 			);
 
 		let intervalSetting: Setting;
+		let intervalText: TextComponent;
 
 		new Setting(containerEl)
 			.setName('Enable Auto-Refresh')
@@ -78,6 +79,7 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 					this.plugin.log("Auto Refresh", value);
 					this.plugin.settings.autoRefresh = value;
 					await this.plugin.saveSettings();
+					intervalText.setDisabled(!value);
 					intervalSetting.setDisabled(!value);
 				})
 			);
@@ -86,7 +88,9 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 			.setName('Refresh Interval (seconds)')
 			.setDesc('How often to re-render dynbedded blocks (10–3600 seconds).')
 			.addText(text => {
+				intervalText = text;
 				text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
+				text.setDisabled(!this.plugin.settings.autoRefresh);
 				// Save and clamp only when the user leaves the field
 				text.inputEl.addEventListener('blur', async () => {
 					const parsed = parseInt(text.getValue(), 10);
