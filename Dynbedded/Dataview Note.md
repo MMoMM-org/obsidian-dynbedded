@@ -1,4 +1,4 @@
-Show Incoming links of this [[Dataview Note]]
+Show Incoming links of this [[Dataview Note]] 
 ```dataview
 LIST FROM [[]]
 ```

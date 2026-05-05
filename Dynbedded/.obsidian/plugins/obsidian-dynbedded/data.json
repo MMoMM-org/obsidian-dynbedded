@@ -1,4 +1,6 @@
 {
   "debugLogging": false,
-  "silentMode": false
+  "silentMode": false,
+  "autoRefresh": false,
+  "refreshIntervalSeconds": 10
 }
