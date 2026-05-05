@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.2.1...1.2.2) (2026-05-05)
+
+
+### Bug Fixes
+
+* disable refresh interval input via native HTML attribute ([6c88390](https://github.com/MMoMM-org/obsidian-dynbedded/commit/6c883901502b7cd42bb97207091d32f29e997bff)), closes [#13](https://github.com/MMoMM-org/obsidian-dynbedded/issues/13)
+
 ## [1.2.1](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.2.0...1.2.1) (2026-03-24)
 
 
