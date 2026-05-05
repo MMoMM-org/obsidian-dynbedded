@@ -3,10 +3,17 @@ on:
   push:
     branches:
       - main
+permissions:
+  contents: read
+
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write       # create release commits, tags, GitHub Releases
+      issues: write         # comment on closed issues from semantic-release
+      pull-requests: write  # comment on PRs from semantic-release
     steps:
       - name: Checkout
         uses: actions/checkout@v4

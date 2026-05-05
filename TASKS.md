@@ -25,16 +25,17 @@ Two parts:
 
 **Complexity: XS**
 
+### Security & permissions cleanup
+- Resolved 20 open Dependabot alerts (handlebars / undici / lodash / picomatch / flatted) by running `npm audit fix`. All were transitive devDependencies of the build/release tooling — `npm audit --omit=dev` was already 0. No runtime impact on the published plugin (`dependencies: {}`); only the lock file changed.
+- Closed the open Code Scanning alert by adding an explicit `permissions:` block to `.github/workflows/release.yml`: workflow-default `contents: read`, with the release job elevated to `contents: write`, `issues: write`, and `pull-requests: write` for semantic-release.
+
+**Where:** `package-lock.json`, `.github/workflows/release.yml`
+
+**Complexity: XS**
+
 ---
 
 ## Technical Debt
-
-### TD-5 — Upgrade GitHub Actions to Node.js 24
-`actions/checkout@v2` and `actions/setup-node@v2` run on Node.js 20, which GitHub will force-migrate to Node.js 24 by default from **June 2, 2026**. Upgrade both to v4.
-
-**Where:** `.github/workflows/release.yml`
-
-**Complexity: XS**
 
 ### TD-6 — Auto-close issues and apply labels on release
 
