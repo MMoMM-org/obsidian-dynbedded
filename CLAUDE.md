@@ -2,6 +2,8 @@
 
 Obsidian plugin that enables dynamic embeds: embed files or header sections with optional date-based filename substitution.
 
+@~/Kouzou/standards/general.md
+
 ---
 
 ## Build & Dev

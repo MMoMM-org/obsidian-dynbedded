@@ -20,6 +20,8 @@ YESTERDAY=$(date -v-1d +%Y-%m-%d)
 # rename the 4 files accordingly
 ```
 
+**Note:** `update-vault.mjs` (called by `npm run dev` / `npm run build:dev`) handles this automatically — it renames the 4 date files AND updates `[[date]]` links inside `1. Readme English.md` and `1. Liesmich Deutsch.md`. All vault date maintenance logic belongs here; do not create separate scripts for vault updates.
+
 ## Dev Build
 
 `npm run dev` — esbuild watch mode, auto-deploys to `Dynbedded/.obsidian/plugins/obsidian-dynbedded/` (main.js + manifest.json + styles.css). No manual copy needed.
