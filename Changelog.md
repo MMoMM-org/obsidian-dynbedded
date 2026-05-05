@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.2.2...1.2.3) (2026-05-05)
+
+
+### Bug Fixes
+
+* make disabled refresh interval visually obvious ([1f0498a](https://github.com/MMoMM-org/obsidian-dynbedded/commit/1f0498a1ab90b974ee3fa22f1c49f333db61f0fe)), closes [#13](https://github.com/MMoMM-org/obsidian-dynbedded/issues/13)
+
 ## [1.2.2](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.2.1...1.2.2) (2026-05-05)
 
 
