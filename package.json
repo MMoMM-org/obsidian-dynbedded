@@ -8,7 +8,6 @@
 		"@typescript-eslint/eslint-plugin": "^8.0.0",
 		"@typescript-eslint/parser": "^8.0.0",
 		"eslint": "^8.57.1",
-		"builtin-modules": "^5.0.0",
 		"esbuild": "^0.27.0",
 		"esbuild-plugin-copy": "^2.1.1",
 		"obsidian": "latest",
@@ -18,8 +17,7 @@
 		"@semantic-release/commit-analyzer": "^13.0.0",
 		"@semantic-release/release-notes-generator": "^14.0.0",
 		"@semantic-release/changelog": "^6.0.3",
-		"@semantic-release/git": "^10.0.1",
-		"@semantic-release/exec": "^7.0.0"
+		"@semantic-release/git": "^10.0.1"
 	},
 	"keywords": [],
 	"license": "GPLv3",
@@ -56,12 +54,6 @@
 				}
 			],
 			[
-				"@semantic-release/exec",
-				{
-					"publishCmd": "./createZip.sh obsidian-dynbedded"
-				}
-			],
-			[
 				"@semantic-release/git",
 				{
 					"assets": [
@@ -88,10 +80,6 @@
 						{
 							"path": "build/styles.css",
 							"label": "styles.css"
-						},
-						{
-							"path": "./obsidian-dynbedded.zip",
-							"label": "obsidian-dynbedded.zip"
 						}
 					]
 				}

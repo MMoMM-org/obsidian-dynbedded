@@ -10,9 +10,39 @@
 }
 /* Make disabled inputs in plugin settings unmistakably non-editable.
    Some platforms (Windows / Electron) render the native :disabled style
-   too subtly, so users could not tell the field was gated. */
-.dynbedded-disabled-input {
+   too subtly, so users could not tell the field was gated. Selector
+   includes input.* to outweigh Obsidian's default form-field rule
+   without needing !important. */
+.dynbedded-disabled-input,
+input.dynbedded-disabled-input {
     opacity: 0.45;
     cursor: not-allowed;
-    background: var(--background-modifier-form-field) !important;
+    background: var(--background-modifier-form-field);
+}
+
+/* Settings tab banner: replaces the previous h1/h2 layout while keeping
+   the visual hierarchy. Obsidian plugin review forbids raw heading
+   elements outside of new Setting().setHeading(). */
+.dynbedded-settings-banner {
+    margin-bottom: 1em;
+}
+.dynbedded-settings-banner-title {
+    font-size: var(--h1-size, 2em);
+    font-weight: var(--h1-weight, 600);
+    line-height: 1.2;
+}
+.dynbedded-settings-banner-subtitle {
+    font-size: var(--font-ui-medium, 1em);
+    font-weight: normal;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-top: 0.25em;
+}
+.dynbedded-settings-banner-version {
+    font-weight: 600;
+    margin-top: 0.5em;
+}
+.dynbedded-settings-banner-link {
+    display: block;
+    margin-top: 0.5em;
 }

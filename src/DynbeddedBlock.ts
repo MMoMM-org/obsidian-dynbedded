@@ -23,12 +23,16 @@ export class DynbeddedBlock extends MarkdownRenderChild {
         this.processor = new DynbeddedProcessor(app, plugin);
     }
 
-    async onload() {
-        await this.processor.render(this.source, this.containerEl, this.ctx);
+    onload() {
+        void this.renderAndScheduleRefresh();
+    }
+
+    private async renderAndScheduleRefresh() {
+        await this.processor.render(this.source, this.containerEl, this.ctx, this);
 
         if (this.plugin.settings.autoRefresh) {
             const intervalMs = Math.max(10, Math.min(3600, this.plugin.settings.refreshIntervalSeconds)) * 1000;
-            this.registerInterval(window.setInterval(() => this.rerender(), intervalMs));
+            this.registerInterval(window.setInterval(() => { void this.rerender(); }, intervalMs));
         }
     }
 
@@ -36,7 +40,7 @@ export class DynbeddedBlock extends MarkdownRenderChild {
         if (this.isRendering) return;
         this.isRendering = true;
         this.containerEl.empty();
-        await this.processor.render(this.source, this.containerEl, this.ctx);
+        await this.processor.render(this.source, this.containerEl, this.ctx, this);
         this.isRendering = false;
     }
 }

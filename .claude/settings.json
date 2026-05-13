@@ -1,0 +1,5 @@
+{
+  "claudeMdExcludes": [
+    "claude-docker-home/CLAUDE.md"
+  ]
+}

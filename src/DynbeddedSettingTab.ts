@@ -30,18 +30,21 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h1', { text: this.plugin.pluginName});
-		containerEl.createEl('h2', { text: this.plugin.pluginDescription});
-		containerEl.createEl('b', { text: ' Version: ' + this.plugin.pluginVersion });
-		containerEl.createEl('br', {text: ''})
-		containerEl.createEl('br', {text: ''})
-		containerEl.createEl('a', {text: 'Created by ' + this.plugin.pluginAuthor, href: this.plugin.pluginAuthorUrl})
-		containerEl.createEl('br', {text: ''})
-		containerEl.createEl('br', {text: ''})
-		containerEl.createEl('a', {text: 'Plugin Documentation', href: this.plugin.pluginDocumentationUrl})
-		containerEl.createEl('br', {text: ''})
-		containerEl.createEl('br', {text: ''})
-		// containerEl.createEl('h3', { text: 'Configuration:'});
+		const banner = containerEl.createDiv({ cls: 'dynbedded-settings-banner' });
+		banner.createDiv({ cls: 'dynbedded-settings-banner-title', text: this.plugin.pluginName });
+		banner.createDiv({ cls: 'dynbedded-settings-banner-subtitle', text: this.plugin.pluginDescription });
+		banner.createDiv({ cls: 'dynbedded-settings-banner-version', text: 'Version: ' + this.plugin.pluginVersion });
+		banner.createEl('a', {
+			cls: 'dynbedded-settings-banner-link',
+			text: 'Created by ' + this.plugin.pluginAuthor,
+			href: this.plugin.pluginAuthorUrl,
+		});
+		banner.createEl('a', {
+			cls: 'dynbedded-settings-banner-link',
+			text: 'Plugin Documentation',
+			href: this.plugin.pluginDocumentationUrl,
+		});
+
 		// take from https://github.com/zsviczian/obsidian-excalidraw-plugin/blob/04367bd3cd96a162185401139995f7fc48481470/src/settings.ts#L261
 		const coffeeDiv = containerEl.createDiv("coffee");
 		coffeeDiv.addClass("ex-coffee-div");
@@ -55,7 +58,7 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 		});
 		coffeeImg.height = 45;
 
-		containerEl.createEl('h3', { text: 'Plugin Settings' });
+		new Setting(containerEl).setName('Plugin Settings').setHeading();
 
 		new Setting(containerEl)
 			.setName('Enable Silent Mode')
@@ -98,21 +101,22 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 			.addText(text => {
 				intervalText = text;
 				text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
-				// Save and clamp only when the user leaves the field
-				text.inputEl.addEventListener('blur', async () => {
+				const persistInterval = async () => {
 					const parsed = parseInt(text.getValue(), 10);
 					const clamped = isNaN(parsed) ? this.plugin.settings.refreshIntervalSeconds
 					                              : Math.max(10, Math.min(3600, parsed));
 					this.plugin.settings.refreshIntervalSeconds = clamped;
 					await this.plugin.saveSettings();
 					text.setValue(String(clamped));
-				});
+				};
+				// Save and clamp only when the user leaves the field
+				text.inputEl.addEventListener('blur', () => { void persistInterval(); });
 			});
 		applyIntervalDisabled(!this.plugin.settings.autoRefresh);
 
 // Leave this alone!
 		containerEl.createEl('hr');
-		containerEl.createEl('h3', { text: 'Developer Settings' });
+		new Setting(containerEl).setName('Developer Settings').setHeading();
 
 		new Setting(containerEl)
 			.setName('Enable Debug Logging')
