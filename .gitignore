@@ -2,6 +2,11 @@
 
 #Dynbedded/.obsidian/plugins/obsidian-dynbedded
 
+# Third-party plugins installed in test vault — not part of this repo
+Dynbedded/.obsidian/plugins/buttons/
+Dynbedded/.obsidian/plugins/dataview/
+Dynbedded/.obsidian/plugins/obsidian-tasks-plugin/
+
 ## You might want to include the following files by putting a # infront of them or deleting them from here
 Dynbedded/.obsidian/app.json
 Dynbedded/.obsidian/appearance.json
