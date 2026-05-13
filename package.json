@@ -17,8 +17,7 @@
 		"@semantic-release/commit-analyzer": "^13.0.0",
 		"@semantic-release/release-notes-generator": "^14.0.0",
 		"@semantic-release/changelog": "^6.0.3",
-		"@semantic-release/git": "^10.0.1",
-		"@semantic-release/exec": "^7.0.0"
+		"@semantic-release/git": "^10.0.1"
 	},
 	"keywords": [],
 	"license": "GPLv3",
@@ -55,12 +54,6 @@
 				}
 			],
 			[
-				"@semantic-release/exec",
-				{
-					"publishCmd": "./createZip.sh obsidian-dynbedded"
-				}
-			],
-			[
 				"@semantic-release/git",
 				{
 					"assets": [
@@ -87,10 +80,6 @@
 						{
 							"path": "build/styles.css",
 							"label": "styles.css"
-						},
-						{
-							"path": "./obsidian-dynbedded.zip",
-							"label": "obsidian-dynbedded.zip"
 						}
 					]
 				}
