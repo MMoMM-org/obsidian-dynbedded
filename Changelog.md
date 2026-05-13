@@ -1,3 +1,20 @@
+# [1.3.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.2.3...1.3.0) (2026-05-13)
+
+
+### Bug Fixes
+
+* avoid returning a Promise from MarkdownRenderChild.onload ([f2e6cc8](https://github.com/MMoMM-org/obsidian-dynbedded/commit/f2e6cc8301bea0e10e942cfe7f06eb9cb69cfac2))
+* avoid returning a Promise from settings blur handler ([d1448f3](https://github.com/MMoMM-org/obsidian-dynbedded/commit/d1448f3fc8b10868cd9aaf666e04301790ecb436))
+* scope MarkdownRenderer component to the render child ([415bca4](https://github.com/MMoMM-org/obsidian-dynbedded/commit/415bca4e08034584c835573d7aedb57eedd6e8db))
+* **settings:** tone down banner subtitle to muted body text ([d400247](https://github.com/MMoMM-org/obsidian-dynbedded/commit/d4002475e771734ddd64fef5deb6601eb9f16f49))
+* **settings:** use setHeading and a banner div instead of raw h1-h3 ([81df9d4](https://github.com/MMoMM-org/obsidian-dynbedded/commit/81df9d46cc370aac0cfdc9d61565c96ff44642d5))
+* stringify TFile path in error message ([ef1248a](https://github.com/MMoMM-org/obsidian-dynbedded/commit/ef1248ae360249fcd4e5e2a3c47ac7c8fc1fd65f))
+
+
+### Features
+
+* add Docker Claude Code environment (secure config v1.0) ([e001dfe](https://github.com/MMoMM-org/obsidian-dynbedded/commit/e001dfe464fc53d03d6d539dc0158bf625ab4ce3))
+
 ## [1.2.3](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.2.2...1.2.3) (2026-05-05)
 
 
