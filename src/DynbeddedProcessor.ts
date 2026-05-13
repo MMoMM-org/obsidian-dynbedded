@@ -1,4 +1,4 @@
-import {App, MarkdownPostProcessorContext, MarkdownRenderer, TFile} from "obsidian";
+import {App, Component, MarkdownPostProcessorContext, MarkdownRenderer, TFile} from "obsidian";
 import Dynbedded from "./main";
 
 export class DynbeddedProcessor {
@@ -18,7 +18,7 @@ export class DynbeddedProcessor {
         }
     }
 
-    async render(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) {
+    async render(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext, component: Component) {
 
         const headerHierarchy = /^headerHierarchy:\s*true\s*$/m.test(source);
         this.plugin.log("HeaderHierarchy", headerHierarchy);
@@ -139,7 +139,10 @@ export class DynbeddedProcessor {
         }
         this.plugin.log("File", fileContents)
         const container = el.createDiv({cls: [Dynbedded.containerClass]});
-        await MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, this.plugin);
+        // Use the per-block render child as the component so any children
+        // registered by MarkdownRenderer are released when the block unloads.
+        // Passing the plugin would tie them to the plugin's lifetime → leak.
+        await MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, component);
     }
 
     private getDynamicDate(dynamicDateMatch: RegExpExecArray) {
