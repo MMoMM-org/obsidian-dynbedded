@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.3.0...1.3.1) (2026-05-13)
+
+
+### Bug Fixes
+
+* address plugin review warnings surfaced by ESLint 9 migration ([301784f](https://github.com/MMoMM-org/obsidian-dynbedded/commit/301784f293729bc17587470b991712d3f37f5ecc))
+
 # [1.3.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.2.3...1.3.0) (2026-05-13)
 
 
