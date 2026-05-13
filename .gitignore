@@ -227,3 +227,8 @@ dist
 .pnp.*
 
 /.idea/sonarlint/issuestore/index.pb
+/claude-docker/
+/claude-docker-home/
+/begin-code.sh
+.mcp.json
+/generated-images/
