@@ -14,6 +14,8 @@ jobs:
       contents: write       # create release commits, tags, GitHub Releases
       issues: write         # comment on closed issues from semantic-release
       pull-requests: write  # comment on PRs from semantic-release
+      id-token: write       # mint OIDC token for artifact attestation
+      attestations: write   # write artifact attestations
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,4 +34,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
+
+      - name: Attest release assets
+        # Only runs when semantic-release actually built artifacts
+        # (no-op commits like docs/chore won't populate build/).
+        if: hashFiles('build/main.js') != ''
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            build/main.js
+            build/styles.css
 
