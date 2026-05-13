@@ -14,41 +14,7 @@ Sourced from [GitHub Issues](https://github.com/MMoMM-org/obsidian-dynbedded/iss
 
 ## Pending Confirmation
 
-### Plugin review compliance — code, settings, release pipeline
-Bundle of fixes addressing Obsidian community-plugin review warnings:
-
-- `DynbeddedProcessor.ts` — TFile concatenated as string rendered as `[object Object]`; now uses `matchingFile.path`.
-- `DynbeddedProcessor.ts` / `DynbeddedBlock.ts` — `MarkdownRenderer.render` now receives the per-block `MarkdownRenderChild` instead of the plugin instance, so registered children are released when the block unloads (memory-leak warning).
-- `DynbeddedBlock.ts` — `onload()` no longer returns a Promise (Obsidian's Component contract is void); same for the `setInterval` re-render callback.
-- `DynbeddedSettingTab.ts` — `addEventListener('blur', async …)` replaced with `void` dispatch; section headings switched to `new Setting().setHeading()`; plugin banner h1/h2 replaced with structured divs styled via `--h1-size` / `--h2-size`.
-- `styles.css` — dropped `!important` on `.dynbedded-disabled-input` in favour of `input.dynbedded-disabled-input` specificity; added `.dynbedded-settings-banner-*` rules.
-- `esbuild.config.mjs` / `package.json` — replaced `builtin-modules` dependency with Node's `node:module` `builtinModules`.
-- `package.json` / `createZip.sh` — removed zip release asset (Obsidian only consumes main.js/manifest.json/styles.css) and the `@semantic-release/exec` step / script that built it.
-- `.github/workflows/release.yml` — added `id-token: write` + `attestations: write` permissions and an `actions/attest-build-provenance` step so release assets carry GitHub artifact attestations.
-- `.gitignore` / `Dynbedded/.obsidian/plugins/` — untracked the three third-party test plugins (buttons, dataview, obsidian-tasks-plugin) that were producing unrelated lint warnings during review; hot-reload stays in tree.
-
-**Where:** `src/DynbeddedProcessor.ts`, `src/DynbeddedBlock.ts`, `src/DynbeddedSettingTab.ts`, `styles.css`, `esbuild.config.mjs`, `package.json`, `.github/workflows/release.yml`, `.gitignore`
-
-**Complexity: M**
-
-### #13 — Refresh Interval Seconds can't be changed
-Two parts:
-
-1. **Disabled state on Windows (released in 1.2.2):** `Setting.setDisabled()` only toggles the `is-disabled` CSS class on the wrapper; it does not set the native HTML `disabled` attribute on the input. Fixed by also calling `TextComponent.setDisabled()` so `inputEl.disabled` is browser-enforced.
-
-2. **Visual feedback when gated:** Field was technically disabled when Auto-Refresh was off, but the styling was too subtle on some platforms (Windows / Electron) — users couldn't tell the field was gated by the toggle and reported it as broken. Added an explicit description swap (*"Enable Auto-Refresh above to change this value"*) plus a CSS rule that lowers opacity and shows a `not-allowed` cursor on the disabled input.
-
-**Where:** `src/DynbeddedSettingTab.ts`, `styles.css`
-
-**Complexity: XS**
-
-### Security & permissions cleanup
-- Resolved 20 open Dependabot alerts (handlebars / undici / lodash / picomatch / flatted) by running `npm audit fix`. All were transitive devDependencies of the build/release tooling — `npm audit --omit=dev` was already 0. No runtime impact on the published plugin (`dependencies: {}`); only the lock file changed.
-- Closed the open Code Scanning alert by adding an explicit `permissions:` block to `.github/workflows/release.yml`: workflow-default `contents: read`, with the release job elevated to `contents: write`, `issues: write`, and `pull-requests: write` for semantic-release.
-
-**Where:** `package-lock.json`, `.github/workflows/release.yml`
-
-**Complexity: XS**
+*(none)*
 
 ---
 
@@ -84,6 +50,31 @@ Allow `{{DWed}}` to resolve to this week's Wednesday, and `{{D-1Wed}}` to last w
 **Complexity: Low**
 
 ---
+
+## Done (released in v1.3.1)
+
+| Task | Commit |
+|------|--------|
+| ESLint 9 + eslint-plugin-obsidianmd migration; sentence-case labels; "Plugin Settings"→"Embedding" / "Developer Settings"→"Logging" heading renames; `console.log`→`error`/`debug`; typed `loadSettings` | `abfc0bd` (#21) |
+
+## Done (released in v1.3.0)
+
+| Task | Commit |
+|------|--------|
+| Plugin review compliance bundle — code, settings, release pipeline (TFile path, render-child component, void onload/blur, setHeading/banner, styles.css `!important` removed, builtin-modules→`node:module`, zip asset dropped, build-provenance attestations, untracked third-party test plugins) | `c369ecb` (#19) |
+| Security & permissions cleanup — 20 Dependabot alerts cleared + workflow `permissions:` block | `9a9e884` (#17) |
+
+## Done (released in v1.2.3)
+
+| Task | Commit |
+|------|--------|
+| #13 — Refresh Interval Seconds: visual feedback when gated by Auto-Refresh | `1f0498a` |
+
+## Done (released in v1.2.2)
+
+| Task | Commit |
+|------|--------|
+| #13 — Refresh Interval Seconds: native HTML `disabled` attribute on Windows | `6c88390` |
 
 ## Done (released in v1.2.0)
 
