@@ -81,7 +81,7 @@ export class DynbeddedProcessor {
         }
         // Todo: could this be moved up?
         if (matchingFile.extension !== "md") {
-            this.showError(el, "Bad file extension found, expected markdown: " + matchingFile);
+            this.showError(el, "Bad file extension found, expected markdown: " + matchingFile.path);
             return;
         }
 
