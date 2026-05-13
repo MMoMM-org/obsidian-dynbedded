@@ -98,15 +98,16 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 			.addText(text => {
 				intervalText = text;
 				text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
-				// Save and clamp only when the user leaves the field
-				text.inputEl.addEventListener('blur', async () => {
+				const persistInterval = async () => {
 					const parsed = parseInt(text.getValue(), 10);
 					const clamped = isNaN(parsed) ? this.plugin.settings.refreshIntervalSeconds
 					                              : Math.max(10, Math.min(3600, parsed));
 					this.plugin.settings.refreshIntervalSeconds = clamped;
 					await this.plugin.saveSettings();
 					text.setValue(String(clamped));
-				});
+				};
+				// Save and clamp only when the user leaves the field
+				text.inputEl.addEventListener('blur', () => { void persistInterval(); });
 			});
 		applyIntervalDisabled(!this.plugin.settings.autoRefresh);
 
