@@ -41,7 +41,7 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 		});
 		banner.createEl('a', {
 			cls: 'dynbedded-settings-banner-link',
-			text: 'Plugin Documentation',
+			text: 'Plugin documentation',
 			href: this.plugin.pluginDocumentationUrl,
 		});
 
@@ -58,10 +58,10 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 		});
 		coffeeImg.height = 45;
 
-		new Setting(containerEl).setName('Plugin Settings').setHeading();
+		new Setting(containerEl).setName('Embedding').setHeading();
 
 		new Setting(containerEl)
-			.setName('Enable Silent Mode')
+			.setName('Enable silent mode')
 			.setDesc('When enabled, missing files or headers render as empty blocks instead of showing an error message.')
 			.addToggle(toggle =>
 				toggle.setValue(this.plugin.settings.silentMode).onChange(async value => {
@@ -85,7 +85,7 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 		};
 
 		new Setting(containerEl)
-			.setName('Enable Auto-Refresh')
+			.setName('Enable auto-refresh')
 			.setDesc('Automatically re-render dynbedded blocks at a set interval. Changes take effect when the note is reopened.')
 			.addToggle(toggle =>
 				toggle.setValue(this.plugin.settings.autoRefresh).onChange(async value => {
@@ -97,7 +97,7 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 			);
 
 		intervalSetting = new Setting(containerEl)
-			.setName('Refresh Interval (seconds)')
+			.setName('Refresh interval (seconds)')
 			.addText(text => {
 				intervalText = text;
 				text.setValue(String(this.plugin.settings.refreshIntervalSeconds));
@@ -116,10 +116,10 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 
 // Leave this alone!
 		containerEl.createEl('hr');
-		new Setting(containerEl).setName('Developer Settings').setHeading();
+		new Setting(containerEl).setName('Logging').setHeading();
 
 		new Setting(containerEl)
-			.setName('Enable Debug Logging')
+			.setName('Enable debug logging')
 			.setDesc('If this is enabled, more things are printed to the console.')
 			.addToggle(toggle =>
 				toggle.setValue(this.plugin.settings.debugLogging).onChange(async value => {

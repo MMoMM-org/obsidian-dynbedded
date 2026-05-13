@@ -19,7 +19,7 @@ export default class Dynbedded extends Plugin {
 	static errorClass = "dynbedded-error";
 
 	static displayError = (parent: HTMLElement, text: string) => {
-		console.log("Dynbedded-Error: ",text)
+		console.error("Dynbedded-Error: ", text);
 		parent.createEl("pre", { text: "Dynbedded: Error: " + text, cls: [Dynbedded.containerClass, Dynbedded.errorClass] });
 	}
 
@@ -42,13 +42,14 @@ export default class Dynbedded extends Plugin {
 
 	log(...args: Parameters<LogType>) {
         if (this.settings.debugLogging) {
-            console.log(this.pluginName + "-Debug:", ...args);
+            console.debug(this.pluginName + "-Debug:", ...args);
 		}
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		this.log("Settings loaded",this.settings);
+		const loaded = (await this.loadData()) as Partial<DynbeddedSettings> | null;
+		this.settings = { ...DEFAULT_SETTINGS, ...(loaded ?? {}) };
+		this.log("Settings loaded", this.settings);
 	}
 
 	async saveSettings() {
