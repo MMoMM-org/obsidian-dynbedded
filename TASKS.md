@@ -14,6 +14,23 @@ Sourced from [GitHub Issues](https://github.com/MMoMM-org/obsidian-dynbedded/iss
 
 ## Pending Confirmation
 
+### Plugin review compliance — code, settings, release pipeline
+Bundle of fixes addressing Obsidian community-plugin review warnings:
+
+- `DynbeddedProcessor.ts` — TFile concatenated as string rendered as `[object Object]`; now uses `matchingFile.path`.
+- `DynbeddedProcessor.ts` / `DynbeddedBlock.ts` — `MarkdownRenderer.render` now receives the per-block `MarkdownRenderChild` instead of the plugin instance, so registered children are released when the block unloads (memory-leak warning).
+- `DynbeddedBlock.ts` — `onload()` no longer returns a Promise (Obsidian's Component contract is void); same for the `setInterval` re-render callback.
+- `DynbeddedSettingTab.ts` — `addEventListener('blur', async …)` replaced with `void` dispatch; section headings switched to `new Setting().setHeading()`; plugin banner h1/h2 replaced with structured divs styled via `--h1-size` / `--h2-size`.
+- `styles.css` — dropped `!important` on `.dynbedded-disabled-input` in favour of `input.dynbedded-disabled-input` specificity; added `.dynbedded-settings-banner-*` rules.
+- `esbuild.config.mjs` / `package.json` — replaced `builtin-modules` dependency with Node's `node:module` `builtinModules`.
+- `package.json` / `createZip.sh` — removed zip release asset (Obsidian only consumes main.js/manifest.json/styles.css) and the `@semantic-release/exec` step / script that built it.
+- `.github/workflows/release.yml` — added `id-token: write` + `attestations: write` permissions and an `actions/attest-build-provenance` step so release assets carry GitHub artifact attestations.
+- `.gitignore` / `Dynbedded/.obsidian/plugins/` — untracked the three third-party test plugins (buttons, dataview, obsidian-tasks-plugin) that were producing unrelated lint warnings during review; hot-reload stays in tree.
+
+**Where:** `src/DynbeddedProcessor.ts`, `src/DynbeddedBlock.ts`, `src/DynbeddedSettingTab.ts`, `styles.css`, `esbuild.config.mjs`, `package.json`, `.github/workflows/release.yml`, `.gitignore`
+
+**Complexity: M**
+
 ### #13 — Refresh Interval Seconds can't be changed
 Two parts:
 
