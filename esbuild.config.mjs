@@ -1,5 +1,5 @@
 import esbuild from "esbuild";
-import builtins from 'builtin-modules'
+import { builtinModules as builtins } from 'node:module';
 import {copy} from "esbuild-plugin-copy";
 import { updateVault } from './update-vault.mjs';
 

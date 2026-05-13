@@ -8,7 +8,6 @@
 		"@typescript-eslint/eslint-plugin": "^8.0.0",
 		"@typescript-eslint/parser": "^8.0.0",
 		"eslint": "^8.57.1",
-		"builtin-modules": "^5.0.0",
 		"esbuild": "^0.27.0",
 		"esbuild-plugin-copy": "^2.1.1",
 		"obsidian": "latest",
