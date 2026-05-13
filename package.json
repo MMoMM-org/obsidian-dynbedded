@@ -1,8 +1,8 @@
 {
-	"author": "Marcus Breiden <marcus@mmomm.org",
+	"author": "Marcus Breiden",
 	"repository": "https://github.com/MMoMM-org/obsidian-dynbedded.git",
 	"dependencies": {},
-	"description": "Dynamic Embeds for Obsidian.md",
+	"description": "Embed files or header sections with optional date-based filename substitution.",
 	"devDependencies": {
 		"@types/node": "^22.0.0",
 		"@typescript-eslint/eslint-plugin": "^8.0.0",
