@@ -56,6 +56,7 @@ The test vault is `Dynbedded/` in the repo root. `npm run dev` writes directly i
 - **TypeScript 5** — type checking only (`tsc -noEmit`); esbuild does the actual bundling
 - **esbuild 0.27** — bundles to CJS, target ES2018; watch mode uses `esbuild.context()` API
 - **eslint 8 + @typescript-eslint 8** — linting (`.eslintrc`)
+- **stylelint + stylelint-no-unsupported-browser-features** — CSS browser-compat lint that mirrors the Obsidian community-plugin review bot (doiuse + browserslist + caniuse). Run via `npm run lint` (chained after eslint) or `npm run lint:css`. The `browserslist` floor in `package.json` is pinned to **`chrome 114`** — this is the Chromium of `minAppVersion` 1.4.0 (Obsidian 1.4.x → Electron 25 → Chromium 114). Raise it only when `minAppVersion` rises; pinning too high hides features Obsidian's older Chromium can't run, pinning too low produces noise on long-stable features (grid/flex/gap). With `ignorePartialSupport: false`, partially-supported features (e.g. the `text-decoration` shorthand carrying a line-style like `underline dotted`/`wavy`) are flagged — these slip past ESLint, which never lints CSS. Prefer `border-bottom` (inherits currentColor) over `text-decoration` for underline-style cues.
 - **semantic-release 25** — automated releases via GitHub Actions (`.github/workflows/release.yml`)
 
 ## Release
