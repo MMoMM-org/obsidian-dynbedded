@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.3.1...1.4.0) (2026-06-11)
+
+
+### Features
+
+* add fundingUrl to manifest for Ko-fi and GitHub Sponsors ([c4e1624](https://github.com/MMoMM-org/obsidian-dynbedded/commit/c4e1624506d86a692a6670b6dde2c9b5a4adb609))
+
 ## [1.3.1](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.3.0...1.3.1) (2026-05-13)
 
 
