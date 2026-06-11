@@ -6,5 +6,9 @@
 	"description": "Embed files or header sections with optional date-based filename substitution.",
 	"author": "Marcus Breiden",
 	"authorUrl": "https://www.mmomm.org",
+	"fundingUrl": {
+		"Buy Me a Coffee": "https://ko-fi.com/mmomm",
+		"GitHub Sponsor": "https://github.com/sponsors/MMoMM-org"
+	},
 	"isDesktopOnly": false
 }
