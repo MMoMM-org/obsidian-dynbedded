@@ -11,6 +11,9 @@ export interface DynbeddedSettings {
 	refreshIntervalSeconds: number;
 	defaultDisplay: DisplayMode;
 	renderQuothBlocks: boolean;
+	quoteStyle: boolean;
+	showSourceLink: boolean;
+	includeHeading: boolean;
 }
 
 export const DEFAULT_SETTINGS: DynbeddedSettings = {
@@ -20,6 +23,9 @@ export const DEFAULT_SETTINGS: DynbeddedSettings = {
 	refreshIntervalSeconds: 60,
 	defaultDisplay: 'embedded',
 	renderQuothBlocks: false,
+	quoteStyle: false,
+	showSourceLink: false,
+	includeHeading: false,
 };
 
 
@@ -90,6 +96,39 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 						this.plugin.settings.defaultDisplay = value as DisplayMode;
 						await this.plugin.saveSettings();
 					})
+			);
+
+		new Setting(containerEl)
+			.setName('Quote styling')
+			.setDesc('Show embedded (block) content with a coloured left accent and a slight indent, like a quote. Applies to embedded display only.')
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.quoteStyle).onChange(async value => {
+					this.plugin.log("Quote Style", value);
+					this.plugin.settings.quoteStyle = value;
+					await this.plugin.saveSettings();
+				})
+			);
+
+		new Setting(containerEl)
+			.setName('Show source link')
+			.setDesc('Add a small link icon to each embed that opens the original note.')
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.showSourceLink).onChange(async value => {
+					this.plugin.log("Show Source Link", value);
+					this.plugin.settings.showSourceLink = value;
+					await this.plugin.saveSettings();
+				})
+			);
+
+		new Setting(containerEl)
+			.setName('Include heading in section')
+			.setDesc('When embedding a "#heading" section, also render the heading line itself. Off keeps the original behaviour of starting below the heading. Does not affect "after:" ranges.')
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.includeHeading).onChange(async value => {
+					this.plugin.log("Include Heading", value);
+					this.plugin.settings.includeHeading = value;
+					await this.plugin.saveSettings();
+				})
 			);
 
 		let intervalSetting: Setting;

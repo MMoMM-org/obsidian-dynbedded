@@ -148,18 +148,20 @@ export class SelectorResolver {
         if (position === undefined) {
             throw new DynbeddedError('Header "' + header + '" not found in [[' + request.fileName + ']]');
         }
-        return this.sliceLines(file, position);
+        // includeHeading (opt-in) keeps the heading line; default starts below it.
+        const startLine = this.plugin.settings.includeHeading ? position.start : position.start + 1;
+        return this.sliceLines(file, startLine, position.end);
     }
 
-    private async sliceLines(file: TFile, position: { start: number; end: number }): Promise<string> {
+    private async sliceLines(file: TFile, startLine: number, endLine: number): Promise<string> {
         let text = await this.app.vault.cachedRead(file);
         if (!text.endsWith('\n')) {
             text = text + '\n';
         }
-        this.plugin.log('Position', position);
-        // position.end may be -1 (rest of file); the appended trailing newline makes the
-        // final split element empty, so slice(start+1, -1) correctly drops only that blank.
-        const content = text.split('\n').slice(position.start + 1, position.end).join('\n');
+        this.plugin.log('Slice', { startLine, endLine });
+        // endLine may be -1 (rest of file); the appended trailing newline makes the
+        // final split element empty, so slice(start, -1) correctly drops only that blank.
+        const content = text.split('\n').slice(startLine, endLine).join('\n');
         this.plugin.log('Split', content);
         return content;
     }

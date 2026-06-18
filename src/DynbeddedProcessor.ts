@@ -1,4 +1,4 @@
-import { App, Component, MarkdownPostProcessorContext, MarkdownRenderer, TFile } from "obsidian";
+import { App, Component, MarkdownPostProcessorContext, MarkdownRenderer, setIcon, TFile } from "obsidian";
 import Dynbedded from "./main";
 import { Anchor, DynbeddedError, EmbedRequest, ParseFn, Selector } from "./EmbedRequest";
 import { SelectorResolver } from "./SelectorResolver";
@@ -67,16 +67,47 @@ export class DynbeddedProcessor {
         // Use the per-block render child as the component so any children
         // registered by MarkdownRenderer are released when the block unloads.
         // Passing the plugin would tie them to the plugin's lifetime → leak.
+        let contentEl: HTMLElement;
         if (request.display === "inline") {
-            await this.renderInline(fileContents, el, ctx.sourcePath, component);
+            contentEl = await this.renderInline(fileContents, el, ctx.sourcePath, component);
         } else {
-            const container = el.createDiv({cls: [Dynbedded.containerClass]});
-            await MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, component);
+            contentEl = el.createDiv({cls: [Dynbedded.containerClass]});
+            await MarkdownRenderer.render(this.app, fileContents, contentEl, ctx.sourcePath, component);
+            if (this.plugin.settings.quoteStyle) {
+                contentEl.addClass("dynbedded-quote-style");
+            }
+        }
+
+        if (this.plugin.settings.showSourceLink) {
+            this.renderSourceLink(contentEl, matchingFile, component, request.display);
         }
 
         if (request.attribution.length > 0) {
             this.renderAttribution(el, matchingFile, request.attribution);
         }
+    }
+
+    // Optional link icon that opens the embedded note (#b). For embedded display it
+    // sits in the top-right corner; for inline it trails the content.
+    private renderSourceLink(contentEl: HTMLElement, file: TFile, component: Component, display: 'embedded' | 'inline') {
+        const link = contentEl.createSpan({
+            cls: "dynbedded-source-link",
+            attr: { "aria-label": "Open " + file.basename, role: "link", tabindex: "0" },
+        });
+        setIcon(link, "link");
+        if (display === "embedded") {
+            contentEl.addClass("dynbedded-has-link");
+        } else {
+            link.addClass("dynbedded-source-link-inline");
+        }
+        const open = () => { void this.app.workspace.getLeaf(false).openFile(file); };
+        component.registerDomEvent(link, "click", open);
+        component.registerDomEvent(link, "keydown", (event: KeyboardEvent) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                open();
+            }
+        });
     }
 
     // Renders a source-attribution footer (#28). Title falls back to the file
@@ -103,7 +134,7 @@ export class DynbeddedProcessor {
     // Inline display: render into an inline span and unwrap a single top-level
     // paragraph so the content flows as one run. Multi-block content (lists,
     // multiple paragraphs) is left intact as a graceful fallback.
-    private async renderInline(content: string, el: HTMLElement, sourcePath: string, component: Component) {
+    private async renderInline(content: string, el: HTMLElement, sourcePath: string, component: Component): Promise<HTMLElement> {
         const span = el.createSpan({cls: [Dynbedded.containerClass, "dynbedded-inline"]});
         await MarkdownRenderer.render(this.app, content, span, sourcePath, component);
         if (span.childElementCount === 1 && span.firstElementChild?.tagName === "P") {
@@ -113,6 +144,7 @@ export class DynbeddedProcessor {
             }
             paragraph.remove();
         }
+        return span;
     }
 
     // Resolves {{...}} date tokens in the filename and in every selector anchor.
