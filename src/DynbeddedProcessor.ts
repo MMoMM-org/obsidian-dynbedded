@@ -1,4 +1,4 @@
-import { App, Component, MarkdownPostProcessorContext, MarkdownRenderer } from "obsidian";
+import { App, Component, MarkdownPostProcessorContext, MarkdownRenderer, TFile } from "obsidian";
 import Dynbedded from "./main";
 import { Anchor, DynbeddedError, EmbedRequest, ParseFn, Selector } from "./EmbedRequest";
 import { SelectorResolver } from "./SelectorResolver";
@@ -73,6 +73,31 @@ export class DynbeddedProcessor {
             const container = el.createDiv({cls: [Dynbedded.containerClass]});
             await MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, component);
         }
+
+        if (request.attribution.length > 0) {
+            this.renderAttribution(el, matchingFile, request.attribution);
+        }
+    }
+
+    // Renders a source-attribution footer (#28). Title falls back to the file
+    // basename; author comes from frontmatter. Order follows the `show:` list.
+    private renderAttribution(el: HTMLElement, file: TFile, attribution: ('author' | 'title')[]) {
+        const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+        const parts: string[] = [];
+        for (const field of attribution) {
+            if (field === "title") {
+                parts.push(String(frontmatter?.title ?? file.basename));
+            } else if (frontmatter?.author !== undefined && frontmatter.author !== null) {
+                parts.push(String(frontmatter.author));
+            }
+        }
+        if (parts.length === 0) {
+            return;
+        }
+        el.createEl("cite", {
+            cls: [Dynbedded.containerClass, "dynbedded-attribution"],
+            text: "— " + parts.join(", "),
+        });
     }
 
     // Inline display: render into an inline span and unwrap a single top-level

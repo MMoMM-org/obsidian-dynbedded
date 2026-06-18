@@ -1,5 +1,6 @@
 import { Anchor, DEFAULT_JOIN, DynbeddedError, EmbedRequest, Selector } from '../EmbedRequest';
 import { DisplayMode } from '../DynbeddedSettingTab';
+import { parseShow, splitTopLevel } from './shared';
 
 // Opt-in compatibility adapter: parses the deprecated Quoth code-block syntax
 // into an EmbedRequest so Dynbedded can render `quoth` blocks unchanged.
@@ -56,17 +57,6 @@ export function parseQuoth(source: string, _defaultDisplay?: DisplayMode): Embed
     return { fileName: target, selector, display, attribution, headerHierarchy: false, join };
 }
 
-function parseShow(value: string): ('author' | 'title')[] {
-    const out: ('author' | 'title')[] = [];
-    for (const token of splitTopLevel(value, ',')) {
-        const t = token.trim();
-        if (t === 'author' || t === 'title') {
-            out.push(t);
-        }
-    }
-    return out;
-}
-
 function parseRanges(value: string): Selector {
     const parts = splitTopLevel(value, ',').map(parseRange);
     if (parts.length === 0) {
@@ -107,27 +97,6 @@ function parseAnchor(token: string): Anchor {
     }
 
     throw new DynbeddedError('Bad quoth range anchor: ' + token);
-}
-
-// Splits on a single-character delimiter at the top level, ignoring delimiters
-// inside double quotes.
-function splitTopLevel(input: string, delimiter: string): string[] {
-    const out: string[] = [];
-    let current = '';
-    let inQuotes = false;
-    for (const ch of input) {
-        if (ch === '"') {
-            inQuotes = !inQuotes;
-        }
-        if (ch === delimiter && !inQuotes) {
-            out.push(current);
-            current = '';
-        } else {
-            current += ch;
-        }
-    }
-    out.push(current);
-    return out.map(s => s.trim()).filter(s => s.length > 0);
 }
 
 // Splits a range segment on the first top-level " to " (outside quotes).

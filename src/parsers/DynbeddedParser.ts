@@ -1,5 +1,6 @@
 import { DEFAULT_JOIN, DynbeddedError, EmbedRequest, Selector } from '../EmbedRequest';
 import { DisplayMode } from '../DynbeddedSettingTab';
+import { parseShow } from './shared';
 
 // Parses the native dynbedded code-block syntax into an EmbedRequest.
 //
@@ -17,6 +18,7 @@ const AFTER = /^after:\s*"(.*)"\s*$/m;
 const FROM = /^from:\s*"(.*)"\s*$/m;
 const TO = /^to:\s*"(.*)"\s*$/m;
 const DISPLAY = /^display:\s*(embedded|inline)\s*$/m;
+const SHOW = /^show:\s*(.*)$/m;
 
 export function parseDynbedded(source: string, defaultDisplay: DisplayMode = 'embedded'): EmbedRequest {
     const linkMatch = FILE_LINK.exec(source);
@@ -33,12 +35,13 @@ export function parseDynbedded(source: string, defaultDisplay: DisplayMode = 'em
     }
 
     const displayMatch = DISPLAY.exec(source);
+    const showMatch = SHOW.exec(source);
 
     return {
         fileName: target,
         selector: parseSelector(source, subpath),
         display: displayMatch ? (displayMatch[1] as DisplayMode) : defaultDisplay,
-        attribution: [],
+        attribution: showMatch ? parseShow(showMatch[1]) : [],
         headerHierarchy: HEADER_HIERARCHY.test(source),
         join: DEFAULT_JOIN,
     };

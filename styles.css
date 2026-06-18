@@ -8,6 +8,14 @@
 .dynbedded-inline {
     display: inline;
 }
+/* Source attribution footer (show: author / title). */
+.dynbedded-attribution {
+    display: block;
+    margin-top: 0.25em;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small, 0.85em);
+    font-style: normal;
+}
 /* Center the Ko-Fi Icon */
 .ex-coffee-div {
     text-align: center;
