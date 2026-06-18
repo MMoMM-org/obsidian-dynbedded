@@ -1,6 +1,6 @@
 import { App, Component, MarkdownPostProcessorContext, MarkdownRenderer } from "obsidian";
 import Dynbedded from "./main";
-import { DynbeddedError, EmbedRequest } from "./EmbedRequest";
+import { Anchor, DynbeddedError, EmbedRequest, Selector } from "./EmbedRequest";
 import { parseDynbedded } from "./parsers/DynbeddedParser";
 import { SelectorResolver } from "./SelectorResolver";
 
@@ -72,12 +72,35 @@ export class DynbeddedProcessor {
         await MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, component);
     }
 
-    // Resolves {{...}} date tokens in the filename and (heading) subpath in place.
+    // Resolves {{...}} date tokens in the filename and in every selector anchor.
     private resolveDates(request: EmbedRequest) {
         request.fileName = this.substituteDate(request.fileName);
-        if (request.selector.kind === "subpath") {
-            request.selector.subpath = this.substituteDate(request.selector.subpath);
+        request.selector = this.resolveSelectorDates(request.selector);
+    }
+
+    private resolveSelectorDates(selector: Selector): Selector {
+        switch (selector.kind) {
+            case "subpath":
+                return { kind: "subpath", subpath: this.substituteDate(selector.subpath) };
+            case "after":
+                return { kind: "after", anchor: this.resolveAnchorDates(selector.anchor) };
+            case "between":
+                return {
+                    kind: "between",
+                    from: this.resolveAnchorDates(selector.from),
+                    to: this.resolveAnchorDates(selector.to),
+                };
+            case "multi":
+                return { kind: "multi", parts: selector.parts.map(part => this.resolveSelectorDates(part)) };
+            case "whole":
+                return selector;
         }
+    }
+
+    private resolveAnchorDates(anchor: Anchor): Anchor {
+        return anchor.kind === "text"
+            ? { kind: "text", text: this.substituteDate(anchor.text) }
+            : anchor;
     }
 
     private substituteDate(value: string): string {

@@ -1,10 +1,13 @@
 import { App, TFile } from 'obsidian';
-import { DynbeddedError, EmbedRequest, Selector } from './EmbedRequest';
+import { Anchor, DynbeddedError, EmbedRequest, Selector } from './EmbedRequest';
 import Dynbedded from './main';
 
 // Turns an EmbedRequest's Selector into the slice of file content to render.
-// Phase 0 implements `whole` and `subpath` (heading) — byte-identical to the
-// pre-refactor DynbeddedProcessor. Range selectors arrive in Phase 1.
+//   whole    — entire file
+//   subpath  — heading section (ends at next heading / headerHierarchy)
+//   after    — anchor line (exclusive) → end of file (#26)
+//   between  — from-anchor line → to-anchor line, both inclusive (#26)
+//   multi    — several selectors joined by EmbedRequest.join (#26)
 export class SelectorResolver {
     private app: App;
     private plugin: Dynbedded;
@@ -24,9 +27,63 @@ export class SelectorResolver {
                 return this.app.vault.cachedRead(file);
             case 'subpath':
                 return this.resolveHeading(file, selector.subpath, request);
-            default:
-                throw new DynbeddedError('Unsupported selector: ' + selector.kind);
+            case 'after':
+                return this.resolveAfter(file, selector.anchor, request);
+            case 'between':
+                return this.resolveBetween(file, selector.from, selector.to, request);
+            case 'multi': {
+                const parts: string[] = [];
+                for (const part of selector.parts) {
+                    parts.push(await this.resolveSelector(file, part, request));
+                }
+                return parts.join(request.join);
+            }
         }
+    }
+
+    private async resolveAfter(file: TFile, anchor: Anchor, request: EmbedRequest): Promise<string> {
+        const lines = await this.readLines(file);
+        const idx = this.findAnchorLine(lines, anchor, request);
+        // exclusive of the anchor line, through to end of file (Quoth `after` semantics)
+        return lines.slice(idx + 1).join('\n');
+    }
+
+    private async resolveBetween(file: TFile, from: Anchor, to: Anchor, request: EmbedRequest): Promise<string> {
+        const lines = await this.readLines(file);
+        const fromIdx = this.findAnchorLine(lines, from, request);
+        // search for `to` from the `from` line onward so a repeated phrase resolves forward
+        const toRel = this.findAnchorLine(lines.slice(fromIdx), to, request);
+        const toIdx = fromIdx + toRel;
+        // both ends inclusive
+        return lines.slice(fromIdx, toIdx + 1).join('\n');
+    }
+
+    // Resolves an anchor to a 0-based line index. Text anchors prefer an exact
+    // (trimmed) whole-line match, falling back to the first line that contains the
+    // text. Positional anchors are line-granular (1-based line; col not yet honoured).
+    private findAnchorLine(lines: string[], anchor: Anchor, request: EmbedRequest): number {
+        if (anchor.kind === 'pos') {
+            const idx = anchor.line - 1;
+            if (idx < 0 || idx >= lines.length) {
+                throw new DynbeddedError('Line ' + anchor.line + ' out of range in [[' + request.fileName + ']]');
+            }
+            return idx;
+        }
+        const needle = anchor.text.trim();
+        const exact = lines.findIndex(line => line.trim() === needle);
+        if (exact !== -1) {
+            return exact;
+        }
+        const contained = lines.findIndex(line => line.includes(anchor.text));
+        if (contained !== -1) {
+            return contained;
+        }
+        throw new DynbeddedError('Anchor "' + anchor.text + '" not found in [[' + request.fileName + ']]');
+    }
+
+    private async readLines(file: TFile): Promise<string[]> {
+        const text = await this.app.vault.cachedRead(file);
+        return text.split('\n');
     }
 
     private async resolveHeading(file: TFile, header: string, request: EmbedRequest): Promise<string> {
