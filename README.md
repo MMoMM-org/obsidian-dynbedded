@@ -3,6 +3,8 @@ Embed snippets, templates and any linkable by delegating the current scope to th
 
 ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22obsidian-dynbedded%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)
 
+> 🔄 **Full Quoth replacement.** Dynbedded renders [Quoth](https://github.com/erykwalder/quoth) code blocks directly (Quoth is deprecated — last release 2023). Enable **Render quoth blocks** in the settings and your existing `quoth` notes keep working with no rewrites. See [Quoth compatibility](#quoth-compatibility) below.
+
 # Features
 
 ## Embedded other notes
@@ -201,6 +203,10 @@ display: inline
 
 Supported Quoth fields: `path` (incl. `#heading` and `#^block` subpaths), `ranges` (`after`, `"X" to "Y"`, `line:col`, multiple ranges), `join`, `display` (`embedded`/`inline`) and `show` (`author`/`title`). The setting is off by default.
 
+To match Quoth showing the heading line in a `#section` embed, turn on **Include heading in section** (or set `includeHeading: true` per block).
+
+Minor gaps: `#-list-item` subpaths are not yet supported, and `line:col` positions are resolved per line (the column is ignored). These do not affect the common `after "# Heading"` / heading-section workflow.
+
 ## Possible P+1D features
 PS: No, I won't deliver those features tomorrow 😀
 
@@ -256,7 +262,7 @@ There are some limitations to the plugin (some might be overcome in the future, 
 ## Installing via Obsidian Community Plugins
 
 Just install the plugin via the community plugin dialog as soon as it becomes available. After enabling you are ready to go.
-At the moment there are no real settings available, only debug logging. (And a link to my Ko-Fi Support)
+The settings tab covers silent mode, auto-refresh, default display mode, quote styling, source link, include-heading, and Quoth compatibility — all opt-in and off by default (plus debug logging and a link to my Ko-Fi support).
 
 ## Installing via BRAT
 
