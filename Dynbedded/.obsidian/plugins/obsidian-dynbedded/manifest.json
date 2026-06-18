@@ -1,10 +1,14 @@
 {
 	"id": "obsidian-dynbedded",
 	"name": "Dynbedded",
-	"version": "1.2.3",
+	"version": "1.4.0",
 	"minAppVersion": "1.4.0",
 	"description": "Embed files or header sections with optional date-based filename substitution.",
 	"author": "Marcus Breiden",
 	"authorUrl": "https://www.mmomm.org",
+	"fundingUrl": {
+		"Buy Me a Coffee": "https://ko-fi.com/mmomm",
+		"GitHub Sponsor": "https://github.com/sponsors/MMoMM-org"
+	},
 	"isDesktopOnly": false
 }
