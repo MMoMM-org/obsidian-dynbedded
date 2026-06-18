@@ -1,7 +1,6 @@
 {
 	"author": "Marcus Breiden",
 	"repository": "https://github.com/MMoMM-org/obsidian-dynbedded.git",
-	"dependencies": {},
 	"description": "Embed files or header sections with optional date-based filename substitution.",
 	"devDependencies": {
 		"@eslint/js": "9.39.4",
@@ -10,7 +9,7 @@
 		"@semantic-release/git": "^10.0.1",
 		"@semantic-release/release-notes-generator": "^14.0.0",
 		"@types/node": "^22.0.0",
-		"esbuild": "^0.27.0",
+		"esbuild": "^0.28.1",
 		"esbuild-plugin-copy": "^2.1.1",
 		"eslint": "9.39.4",
 		"eslint-plugin-obsidianmd": "0.3.0",
