@@ -2,6 +2,12 @@
 .dynbedded-error {
     color: red;
 }
+/* Inline display mode (display: inline): flow the embedded content as one run
+   instead of a block. The processor unwraps a single top-level paragraph into
+   this span; any remaining block children fall back to their default layout. */
+.dynbedded-inline {
+    display: inline;
+}
 /* Center the Ko-Fi Icon */
 .ex-coffee-div {
     text-align: center;

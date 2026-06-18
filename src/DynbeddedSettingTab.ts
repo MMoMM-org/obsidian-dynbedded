@@ -2,18 +2,22 @@ import { App, PluginSettingTab, Setting, TextComponent } from 'obsidian';
 import Dynbedded from './main';
 
 
+export type DisplayMode = 'embedded' | 'inline';
+
 export interface DynbeddedSettings {
 	debugLogging: boolean;
 	silentMode: boolean;
 	autoRefresh: boolean;
 	refreshIntervalSeconds: number;
+	defaultDisplay: DisplayMode;
 }
 
-export const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS: DynbeddedSettings = {
 	debugLogging: false,
 	silentMode: false,
 	autoRefresh: false,
 	refreshIntervalSeconds: 60,
+	defaultDisplay: 'embedded',
 };
 
 
@@ -69,6 +73,21 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 					this.plugin.settings.silentMode = value;
 					await this.plugin.saveSettings();
 				})
+			);
+
+		new Setting(containerEl)
+			.setName('Default display mode')
+			.setDesc('How blocks render when they do not set "display:". Embedded keeps block formatting; inline drops the surrounding paragraph so the content flows in one run.')
+			.addDropdown(dropdown =>
+				dropdown
+					.addOption('embedded', 'Embedded (block)')
+					.addOption('inline', 'Inline')
+					.setValue(this.plugin.settings.defaultDisplay)
+					.onChange(async value => {
+						this.plugin.log("Default Display", value);
+						this.plugin.settings.defaultDisplay = value as DisplayMode;
+						await this.plugin.saveSettings();
+					})
 			);
 
 		let intervalSetting: Setting;

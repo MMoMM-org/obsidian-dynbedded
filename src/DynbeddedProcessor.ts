@@ -26,7 +26,7 @@ export class DynbeddedProcessor {
     async render(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext, component: Component) {
         let request: EmbedRequest;
         try {
-            request = parseDynbedded(source);
+            request = parseDynbedded(source, this.plugin.settings.defaultDisplay);
             this.resolveDates(request);
         } catch (error) {
             if (error instanceof DynbeddedError) {
@@ -65,11 +65,30 @@ export class DynbeddedProcessor {
         }
 
         this.plugin.log("File", fileContents);
-        const container = el.createDiv({cls: [Dynbedded.containerClass]});
         // Use the per-block render child as the component so any children
         // registered by MarkdownRenderer are released when the block unloads.
         // Passing the plugin would tie them to the plugin's lifetime → leak.
-        await MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, component);
+        if (request.display === "inline") {
+            await this.renderInline(fileContents, el, ctx.sourcePath, component);
+        } else {
+            const container = el.createDiv({cls: [Dynbedded.containerClass]});
+            await MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, component);
+        }
+    }
+
+    // Inline display: render into an inline span and unwrap a single top-level
+    // paragraph so the content flows as one run. Multi-block content (lists,
+    // multiple paragraphs) is left intact as a graceful fallback.
+    private async renderInline(content: string, el: HTMLElement, sourcePath: string, component: Component) {
+        const span = el.createSpan({cls: [Dynbedded.containerClass, "dynbedded-inline"]});
+        await MarkdownRenderer.render(this.app, content, span, sourcePath, component);
+        if (span.childElementCount === 1 && span.firstElementChild?.tagName === "P") {
+            const paragraph = span.firstElementChild;
+            while (paragraph.firstChild) {
+                span.insertBefore(paragraph.firstChild, paragraph);
+            }
+            paragraph.remove();
+        }
     }
 
     // Resolves {{...}} date tokens in the filename and in every selector anchor.
