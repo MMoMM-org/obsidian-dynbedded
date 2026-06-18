@@ -16,9 +16,11 @@
     font-size: var(--font-ui-small, 0.85em);
     font-style: normal;
 }
-/* Quote styling (opt-in): coloured left accent + indent, like a quote. */
+/* Quote styling (opt-in): left accent + indent, like a native/Quoth embed.
+   Uses the user's accent colour (default violet) — Quoth's own CSS defines no
+   stripe; the purple comes from Obsidian's accent on embedded views. */
 .dynbedded-quote-style {
-    border-left: 3px solid var(--color-purple, #8a5cf5);
+    border-left: 3px solid var(--interactive-accent);
     padding-left: 0.8em;
     margin-left: 0.2em;
 }
