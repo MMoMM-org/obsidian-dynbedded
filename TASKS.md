@@ -14,7 +14,7 @@ Sourced from [GitHub Issues](https://github.com/MMoMM-org/obsidian-dynbedded/iss
 
 ## Pending Confirmation
 
-Epic [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31) — Quoth replacement (silent strategy). Built on a syntax-agnostic `EmbedRequest` model (`src/EmbedRequest.ts`) with two front-end parsers (`parsers/DynbeddedParser.ts`, `parsers/QuothParser.ts`) and one `SelectorResolver`. See `docs/superpowers/specs/2026-06-18-quoth-replacement-design.md`.
+Epic [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31) — Quoth replacement (silent strategy). Built on a syntax-agnostic `EmbedRequest` model (`src/EmbedRequest.ts`) with two front-end parsers (`parsers/DynbeddedParser.ts`, `parsers/QuothParser.ts`) and one `SelectorResolver`. See `docs/XDD/specs/001-quoth-replacement/`.
 
 | Task | Commit |
 |------|--------|
