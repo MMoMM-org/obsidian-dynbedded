@@ -148,8 +148,8 @@ export class SelectorResolver {
         if (position === undefined) {
             throw new DynbeddedError('Header "' + header + '" not found in [[' + request.fileName + ']]');
         }
-        // includeHeading (opt-in) keeps the heading line; default starts below it.
-        const startLine = this.plugin.settings.includeHeading ? position.start : position.start + 1;
+        // includeHeading (opt-in, per-block or settings default) keeps the heading line.
+        const startLine = request.includeHeading ? position.start : position.start + 1;
         return this.sliceLines(file, startLine, position.end);
     }
 

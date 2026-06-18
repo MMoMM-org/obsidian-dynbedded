@@ -43,6 +43,7 @@ function baseRequest(fileName: string, selector: Selector): EmbedRequest {
         display: 'embedded',
         attribution: [],
         headerHierarchy: false,
+        includeHeading: false,
         join: ' ... ',
     };
 }

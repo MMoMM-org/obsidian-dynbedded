@@ -1,4 +1,4 @@
-import { Anchor, DEFAULT_JOIN, DynbeddedError, EmbedRequest, Selector } from '../EmbedRequest';
+import { Anchor, DEFAULT_JOIN, DEFAULT_PARSER_DEFAULTS, DynbeddedError, EmbedRequest, ParserDefaults, Selector } from '../EmbedRequest';
 import type { DisplayMode } from '../DynbeddedSettingTab';
 import { parseShow, splitTopLevel } from './shared';
 
@@ -24,7 +24,7 @@ const JOIN = /^join:\s*"(.*)"\s*$/m;
 const DISPLAY = /^display:\s*(embedded|inline)\s*$/m;
 const SHOW = /^show:\s*(.*)$/m;
 
-export function parseQuoth(source: string, _defaultDisplay?: DisplayMode): EmbedRequest {
+export function parseQuoth(source: string, defaults: ParserDefaults = DEFAULT_PARSER_DEFAULTS): EmbedRequest {
     const pathMatch = PATH.exec(source);
     if (!pathMatch) {
         throw new DynbeddedError('Quoth block missing "path: [[...]]"');
@@ -54,7 +54,8 @@ export function parseQuoth(source: string, _defaultDisplay?: DisplayMode): Embed
             ? { kind: 'subpath', subpath }
             : { kind: 'whole' };
 
-    return { fileName: target, selector, display, attribution, headerHierarchy: false, join };
+    // Quoth has no includeHeading key — fall back to the Dynbedded default.
+    return { fileName: target, selector, display, attribution, headerHierarchy: false, includeHeading: defaults.includeHeading, join };
 }
 
 function parseRanges(value: string): Selector {

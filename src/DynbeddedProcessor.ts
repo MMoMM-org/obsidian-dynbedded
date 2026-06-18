@@ -25,7 +25,10 @@ export class DynbeddedProcessor {
     async render(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext, component: Component, parse: ParseFn) {
         let request: EmbedRequest;
         try {
-            request = parse(source, this.plugin.settings.defaultDisplay);
+            request = parse(source, {
+                display: this.plugin.settings.defaultDisplay,
+                includeHeading: this.plugin.settings.includeHeading,
+            });
             this.resolveDates(request);
         } catch (error) {
             if (error instanceof DynbeddedError) {

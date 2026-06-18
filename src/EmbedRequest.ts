@@ -20,14 +20,26 @@ export interface EmbedRequest {
     display: 'embedded' | 'inline';              // matches Quoth vocabulary; 'embedded' === block
     attribution: ('author' | 'title')[];         // empty = no attribution footer
     headerHierarchy: boolean;                    // #2 flag, only meaningful for heading selectors
+    includeHeading: boolean;                     // render the heading line itself in a heading section
     join: string;                                // separator for multi-range embeds
 }
 
 export const DEFAULT_JOIN = ' ... ';             // Quoth default
 
-// A front-end parser: code-block source + the user's default display → EmbedRequest.
+// Settings-derived defaults a parser falls back to when a block omits the key.
+export interface ParserDefaults {
+    display: DisplayMode;
+    includeHeading: boolean;
+}
+
+export const DEFAULT_PARSER_DEFAULTS: ParserDefaults = {
+    display: 'embedded',
+    includeHeading: false,
+};
+
+// A front-end parser: code-block source + settings defaults → EmbedRequest.
 // Both parseDynbedded and parseQuoth satisfy this, so one processor renders either syntax.
-export type ParseFn = (source: string, defaultDisplay: DisplayMode) => EmbedRequest;
+export type ParseFn = (source: string, defaults: ParserDefaults) => EmbedRequest;
 
 // Thrown by parsers / the resolver for user-facing, recoverable problems.
 // The processor catches it and routes the message through showError (silent-mode aware).

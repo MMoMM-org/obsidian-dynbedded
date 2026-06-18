@@ -1,4 +1,4 @@
-import { Anchor, DEFAULT_JOIN, DynbeddedError, EmbedRequest, Selector } from '../EmbedRequest';
+import { Anchor, DEFAULT_JOIN, DEFAULT_PARSER_DEFAULTS, DynbeddedError, EmbedRequest, ParserDefaults, Selector } from '../EmbedRequest';
 import type { DisplayMode } from '../DynbeddedSettingTab';
 import { parseShow } from './shared';
 
@@ -19,8 +19,9 @@ const FROM = /^from:\s*"(.*)"\s*$/m;
 const TO = /^to:\s*"(.*)"\s*$/m;
 const DISPLAY = /^display:\s*(embedded|inline)\s*$/m;
 const SHOW = /^show:\s*(.*)$/m;
+const INCLUDE_HEADING = /^includeHeading:\s*(true|false)\s*$/m;
 
-export function parseDynbedded(source: string, defaultDisplay: DisplayMode = 'embedded'): EmbedRequest {
+export function parseDynbedded(source: string, defaults: ParserDefaults = DEFAULT_PARSER_DEFAULTS): EmbedRequest {
     const linkMatch = FILE_LINK.exec(source);
     if (!linkMatch) {
         throw new DynbeddedError('Bad file link: ' + source);
@@ -36,13 +37,15 @@ export function parseDynbedded(source: string, defaultDisplay: DisplayMode = 'em
 
     const displayMatch = DISPLAY.exec(source);
     const showMatch = SHOW.exec(source);
+    const includeHeadingMatch = INCLUDE_HEADING.exec(source);
 
     return {
         fileName: target,
         selector: parseSelector(source, subpath),
-        display: displayMatch ? (displayMatch[1] as DisplayMode) : defaultDisplay,
+        display: displayMatch ? (displayMatch[1] as DisplayMode) : defaults.display,
         attribution: showMatch ? parseShow(showMatch[1]) : [],
         headerHierarchy: HEADER_HIERARCHY.test(source),
+        includeHeading: includeHeadingMatch ? includeHeadingMatch[1] === 'true' : defaults.includeHeading,
         join: DEFAULT_JOIN,
     };
 }
@@ -60,6 +63,9 @@ export function serializeDynbedded(request: EmbedRequest): string {
         lines.push(`to: ${serializeAnchor(request.selector.to)}`);
     }
 
+    if (request.selector.kind === 'subpath' && request.includeHeading) {
+        lines.push('includeHeading: true');
+    }
     if (request.display === 'inline') {
         lines.push('display: inline');
     }
