@@ -1,6 +1,8 @@
-import {Plugin} from 'obsidian';
+import {Notice, Plugin} from 'obsidian';
 import {DEFAULT_SETTINGS, DynbeddedSettings, DynbeddedSettingTab} from './DynbeddedSettingTab';
 import { DynbeddedBlock } from './DynbeddedBlock';
+import { parseDynbedded } from './parsers/DynbeddedParser';
+import { parseQuoth } from './parsers/QuothParser';
 
 type LogType = typeof console.log;
 
@@ -15,6 +17,7 @@ export default class Dynbedded extends Plugin {
 	pluginDocumentationUrl = 'https://github.com/MMoMM-org/obsidian-dynbedded';
 
 	static codeBlockKeyword = "dynbedded";
+	static quothKeyword = "quoth";
 	static containerClass = "dynbedded";
 	static errorClass = "dynbedded-error";
 
@@ -32,8 +35,24 @@ export default class Dynbedded extends Plugin {
 
 		// Registering the CodeBlockProcessor
 		this.registerMarkdownCodeBlockProcessor(Dynbedded.codeBlockKeyword, async (source, el, ctx) => {
-			ctx.addChild(new DynbeddedBlock(el, source, this.app, this, ctx));
+			ctx.addChild(new DynbeddedBlock(el, source, this.app, this, ctx, parseDynbedded));
 		});
+
+		// Opt-in: also render `quoth` blocks so the deprecated Quoth plugin can be
+		// uninstalled. Guarded — if Quoth (or anything else) already owns the language
+		// the registration throws; log and carry on rather than break onload.
+		if (this.settings.renderQuothBlocks) {
+			try {
+				this.registerMarkdownCodeBlockProcessor(Dynbedded.quothKeyword, async (source, el, ctx) => {
+					ctx.addChild(new DynbeddedBlock(el, source, this.app, this, ctx, parseQuoth));
+				});
+				this.log("Registered quoth code block rendering");
+			} catch (error) {
+				console.error("Dynbedded: could not register quoth rendering", error);
+				// eslint-disable-next-line obsidianmd/ui/sentence-case -- "Quoth" is a proper noun (the plugin's name)
+				new Notice('Dynbedded: could not render quoth blocks — is the Quoth plugin still installed? Uninstall it and reload.');
+			}
+		}
 	}
 
 	onunload() {

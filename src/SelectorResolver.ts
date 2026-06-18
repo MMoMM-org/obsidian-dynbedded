@@ -1,4 +1,4 @@
-import { App, TFile } from 'obsidian';
+import { App, resolveSubpath, TFile } from 'obsidian';
 import { Anchor, DynbeddedError, EmbedRequest, Selector } from './EmbedRequest';
 import Dynbedded from './main';
 
@@ -26,7 +26,7 @@ export class SelectorResolver {
             case 'whole':
                 return this.app.vault.cachedRead(file);
             case 'subpath':
-                return this.resolveHeading(file, selector.subpath, request);
+                return this.resolveSubpath(file, selector.subpath, request);
             case 'after':
                 return this.resolveAfter(file, selector.anchor, request);
             case 'between':
@@ -84,6 +84,30 @@ export class SelectorResolver {
     private async readLines(file: TFile): Promise<string[]> {
         const text = await this.app.vault.cachedRead(file);
         return text.split('\n');
+    }
+
+    // Heading subpaths keep the historical exact-match behaviour. Block subpaths
+    // (#^id) are resolved via Obsidian's own subpath resolver. List-item subpaths
+    // (#-…) fall through to the heading path (and surface as "not found").
+    private async resolveSubpath(file: TFile, subpath: string, request: EmbedRequest): Promise<string> {
+        if (subpath.startsWith('^')) {
+            return this.resolveBlock(file, subpath, request);
+        }
+        return this.resolveHeading(file, subpath, request);
+    }
+
+    private async resolveBlock(file: TFile, subpath: string, request: EmbedRequest): Promise<string> {
+        const fileCache = this.app.metadataCache.getFileCache(file);
+        if (!fileCache) {
+            throw new DynbeddedError('File cache not available for [[' + request.fileName + ']]');
+        }
+        const result = resolveSubpath(fileCache, '#' + subpath);
+        if (!result || result.type !== 'block') {
+            throw new DynbeddedError('Block "' + subpath + '" not found in [[' + request.fileName + ']]');
+        }
+        const lines = await this.readLines(file);
+        const endLine = result.end ? result.end.line : result.start.line;
+        return lines.slice(result.start.line, endLine + 1).join('\n');
     }
 
     private async resolveHeading(file: TFile, header: string, request: EmbedRequest): Promise<string> {

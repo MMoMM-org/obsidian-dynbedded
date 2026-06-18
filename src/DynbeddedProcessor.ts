@@ -1,7 +1,6 @@
 import { App, Component, MarkdownPostProcessorContext, MarkdownRenderer } from "obsidian";
 import Dynbedded from "./main";
-import { Anchor, DynbeddedError, EmbedRequest, Selector } from "./EmbedRequest";
-import { parseDynbedded } from "./parsers/DynbeddedParser";
+import { Anchor, DynbeddedError, EmbedRequest, ParseFn, Selector } from "./EmbedRequest";
 import { SelectorResolver } from "./SelectorResolver";
 
 export class DynbeddedProcessor {
@@ -23,10 +22,10 @@ export class DynbeddedProcessor {
         }
     }
 
-    async render(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext, component: Component) {
+    async render(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext, component: Component, parse: ParseFn) {
         let request: EmbedRequest;
         try {
-            request = parseDynbedded(source, this.plugin.settings.defaultDisplay);
+            request = parse(source, this.plugin.settings.defaultDisplay);
             this.resolveDates(request);
         } catch (error) {
             if (error instanceof DynbeddedError) {

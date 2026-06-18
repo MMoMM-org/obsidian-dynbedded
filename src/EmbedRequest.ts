@@ -1,6 +1,8 @@
 // Syntax-agnostic internal model shared by every front-end parser
 // (dynbedded native + quoth compat) and consumed by the SelectorResolver.
 
+import type { DisplayMode } from './DynbeddedSettingTab';
+
 export type Anchor =
     | { kind: 'text'; text: string }            // matches a line by its raw text (incl. any '#')
     | { kind: 'pos'; line: number; col: number }; // positional, line:col (Quoth)
@@ -22,6 +24,10 @@ export interface EmbedRequest {
 }
 
 export const DEFAULT_JOIN = ' ... ';             // Quoth default
+
+// A front-end parser: code-block source + the user's default display → EmbedRequest.
+// Both parseDynbedded and parseQuoth satisfy this, so one processor renders either syntax.
+export type ParseFn = (source: string, defaultDisplay: DisplayMode) => EmbedRequest;
 
 // Thrown by parsers / the resolver for user-facing, recoverable problems.
 // The processor catches it and routes the message through showError (silent-mode aware).

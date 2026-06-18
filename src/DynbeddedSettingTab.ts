@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, TextComponent } from 'obsidian';
+import { App, Notice, PluginSettingTab, Setting, TextComponent } from 'obsidian';
 import Dynbedded from './main';
 
 
@@ -10,6 +10,7 @@ export interface DynbeddedSettings {
 	autoRefresh: boolean;
 	refreshIntervalSeconds: number;
 	defaultDisplay: DisplayMode;
+	renderQuothBlocks: boolean;
 }
 
 export const DEFAULT_SETTINGS: DynbeddedSettings = {
@@ -18,6 +19,7 @@ export const DEFAULT_SETTINGS: DynbeddedSettings = {
 	autoRefresh: false,
 	refreshIntervalSeconds: 60,
 	defaultDisplay: 'embedded',
+	renderQuothBlocks: false,
 };
 
 
@@ -132,6 +134,22 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 				text.inputEl.addEventListener('blur', () => { void persistInterval(); });
 			});
 		applyIntervalDisabled(!this.plugin.settings.autoRefresh);
+
+		new Setting(containerEl).setName('Quoth compatibility').setHeading();
+
+		new Setting(containerEl)
+			.setName('Render quoth blocks')
+			.setDesc('Also render code blocks written for the deprecated Quoth plugin. '
+				+ 'Reload Obsidian after changing this, and uninstall Quoth first so the two plugins '
+				+ 'do not both claim the "quoth" code block.')
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.renderQuothBlocks).onChange(async value => {
+					this.plugin.log("Render Quoth Blocks", value);
+					this.plugin.settings.renderQuothBlocks = value;
+					await this.plugin.saveSettings();
+					new Notice('Dynbedded: reload Obsidian for the quoth setting to take effect.');
+				})
+			);
 
 // Leave this alone!
 		containerEl.createEl('hr');
