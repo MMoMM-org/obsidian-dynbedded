@@ -2,6 +2,51 @@
 .dynbedded-error {
     color: red;
 }
+/* Inline display mode (display: inline): flow the embedded content as one run
+   instead of a block. The processor unwraps a single top-level paragraph into
+   this span; any remaining block children fall back to their default layout. */
+.dynbedded-inline {
+    display: inline;
+}
+/* Source attribution footer (show: author / title). */
+.dynbedded-attribution {
+    display: block;
+    margin-top: 0.25em;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small, 0.85em);
+    font-style: normal;
+}
+/* Quote styling (opt-in): left accent + indent, like a native/Quoth embed.
+   Uses the user's accent colour (default violet) — Quoth's own CSS defines no
+   stripe; the purple comes from Obsidian's accent on embedded views. */
+.dynbedded-quote-style {
+    border-left: 3px solid var(--interactive-accent);
+    padding-left: 0.8em;
+    margin-left: 0.2em;
+}
+/* Source link icon (opt-in): opens the embedded note. */
+.dynbedded-has-link {
+    position: relative;
+}
+.dynbedded-source-link {
+    cursor: pointer;
+    color: var(--text-muted);
+    opacity: 0.55;
+}
+.dynbedded-source-link:hover {
+    opacity: 1;
+    color: var(--text-normal);
+}
+.dynbedded-has-link > .dynbedded-source-link {
+    position: absolute;
+    /* sit below Obsidian's code-block "<>" button (top-right) and a few px further left */
+    top: 1.2em;
+    right: calc(0.4em + 6px);
+}
+.dynbedded-source-link-inline {
+    margin-left: 0.3em;
+    vertical-align: baseline;
+}
 /* Center the Ko-Fi Icon */
 .ex-coffee-div {
     text-align: center;

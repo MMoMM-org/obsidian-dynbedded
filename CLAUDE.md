@@ -21,9 +21,16 @@ The test vault is `Dynbedded/` in the repo root. `npm run dev` writes directly i
 
 | File | Role |
 |------|------|
-| `src/main.ts` | Plugin entry point. Registers the `dynbedded` code block processor. |
-| `src/DynbeddedProcessor.ts` | All rendering logic: parse link, date substitution, header extraction, markdown rendering. |
-| `src/DynbeddedSettingTab.ts` | Settings UI. Currently only exposes debug logging toggle. |
+| `src/main.ts` | Plugin entry point. Registers the `dynbedded` (and opt-in `quoth`) code block processors + commands. |
+| `src/EmbedRequest.ts` | Syntax-agnostic internal model (`EmbedRequest`, `Selector`, `Anchor`, `ParseFn`, `DynbeddedError`) shared by both parsers and the resolver. |
+| `src/parsers/DynbeddedParser.ts` | Native syntax → `EmbedRequest`, plus `serializeDynbedded` (inverse, for Copy reference). |
+| `src/parsers/QuothParser.ts` | Opt-in, deletable compat adapter: Quoth syntax → `EmbedRequest`. |
+| `src/parsers/shared.ts` | `splitTopLevel` / `parseShow` shared by both parsers. |
+| `src/SelectorResolver.ts` | `Selector` → content slice (whole / heading / `#^block` / after / between / multi). |
+| `src/DynbeddedProcessor.ts` | Orchestrator: parse → date-substitute → resolve file → extract → render (block/inline) → attribution. |
+| `src/DynbeddedSettingTab.ts` | Settings UI (silent mode, auto-refresh, default display, render quoth blocks, debug logging). |
+| `src/commands/CopyReference.ts` | Builds an `EmbedRequest` from the editor selection/cursor (#29). |
+| `src/commands/ConvertQuoth.ts` | Rewrites `quoth` blocks → `dynbedded` in one note's text (#30, reduced). |
 
 ### Code block syntax
 
@@ -33,21 +40,30 @@ The test vault is `Dynbedded/` in the repo root. `npm run dev` writes directly i
 [[FileName#Header]]
 [[{{YYYY-MM-DD}}]]
 [[{{YYYY-MM-DD|offset}}#Header]]
+after: "anchor"        # anchor line (exclusive) → end of file
+from: "X"              # text-anchored range, both ends inclusive
+to: "Y"
+display: inline        # embedded (default) | inline
+show: title, author    # attribution footer
+includeHeading: true   # render the heading line in a #header section (overrides setting default)
+headerHierarchy: true  # section ends at equal/higher heading only
 ```
 ````
 
-- `{{format}}` — replaced with `moment().format(format)`, supports ISO duration or day offsets via `|` (e.g. `{{YYYY-MM-DD|-1}}` = yesterday)
-- `#Header` — extracts only the content under that heading (until the next heading)
+- `{{format}}` — replaced with `moment().format(format)`, supports ISO duration or day offsets via `|` (e.g. `{{YYYY-MM-DD|-1}}` = yesterday); applies to the filename and to text anchors
+- `#Header` — extracts only the content under that heading (until the next heading); `after:` instead runs to end of file
+- The opt-in `quoth` front-end (`renderQuothBlocks`) maps `path` / `ranges` / `join` / `display` / `show` onto the same model — see the Quoth replacement spec under `docs/superpowers/specs/`.
 
 ### Rendering flow (`DynbeddedProcessor.render`)
 
-1. Extract `[[...]]` link from source
-2. If `#header` present, split off header name (#7: before date substitution)
-3. If `{{...}}` present in filename, resolve dynamic date → replace in filename
-4. If `{{...}}` present in header, resolve dynamic date → replace in header (#7)
-5. Resolve file via `app.metadataCache.getFirstLinkpathDest()`
-6. If header: find heading position in file cache, slice lines
-7. Render content via `MarkdownRenderer.render()`
+1. `parse(source)` (dynbedded or quoth front-end) → `EmbedRequest`
+2. Resolve `{{...}}` date tokens in `fileName` and every selector anchor
+3. Resolve file via `app.metadataCache.getFirstLinkpathDest()`
+4. `SelectorResolver.resolve()` extracts the content slice for the `Selector`
+5. Render via `MarkdownRenderer.render()` (block) or unwrap a single paragraph (inline)
+6. Optional `show:` attribution footer
+
+The pre-refactor single-pass logic now lives split across the parser (link/header/date-token extraction) and the resolver (heading-section slicing, `headerHierarchy`); existing whole-file and `#header` embeds are byte-identical.
 
 ---
 

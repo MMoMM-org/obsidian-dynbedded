@@ -1,19 +1,31 @@
-import { App, PluginSettingTab, Setting, TextComponent } from 'obsidian';
+import { App, Notice, PluginSettingTab, Setting, TextComponent } from 'obsidian';
 import Dynbedded from './main';
 
+
+export type DisplayMode = 'embedded' | 'inline';
 
 export interface DynbeddedSettings {
 	debugLogging: boolean;
 	silentMode: boolean;
 	autoRefresh: boolean;
 	refreshIntervalSeconds: number;
+	defaultDisplay: DisplayMode;
+	renderQuothBlocks: boolean;
+	quoteStyle: boolean;
+	showSourceLink: boolean;
+	includeHeading: boolean;
 }
 
-export const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS: DynbeddedSettings = {
 	debugLogging: false,
 	silentMode: false,
 	autoRefresh: false,
 	refreshIntervalSeconds: 60,
+	defaultDisplay: 'embedded',
+	renderQuothBlocks: false,
+	quoteStyle: false,
+	showSourceLink: false,
+	includeHeading: false,
 };
 
 
@@ -71,6 +83,54 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 				})
 			);
 
+		new Setting(containerEl)
+			.setName('Default display mode')
+			.setDesc('How blocks render when they do not set "display:". Embedded keeps block formatting; inline drops the surrounding paragraph so the content flows in one run.')
+			.addDropdown(dropdown =>
+				dropdown
+					.addOption('embedded', 'Embedded (block)')
+					.addOption('inline', 'Inline')
+					.setValue(this.plugin.settings.defaultDisplay)
+					.onChange(async value => {
+						this.plugin.log("Default Display", value);
+						this.plugin.settings.defaultDisplay = value as DisplayMode;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName('Quote styling')
+			.setDesc('Show embedded (block) content with a coloured left accent and a slight indent, like a quote. Applies to embedded display only.')
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.quoteStyle).onChange(async value => {
+					this.plugin.log("Quote Style", value);
+					this.plugin.settings.quoteStyle = value;
+					await this.plugin.saveSettings();
+				})
+			);
+
+		new Setting(containerEl)
+			.setName('Show source link')
+			.setDesc('Add a small link icon to each embed that opens the original note.')
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.showSourceLink).onChange(async value => {
+					this.plugin.log("Show Source Link", value);
+					this.plugin.settings.showSourceLink = value;
+					await this.plugin.saveSettings();
+				})
+			);
+
+		new Setting(containerEl)
+			.setName('Include heading in section')
+			.setDesc('When embedding a "#heading" section, also render the heading line itself. Off keeps the original behaviour of starting below the heading. Does not affect "after:" ranges.')
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.includeHeading).onChange(async value => {
+					this.plugin.log("Include Heading", value);
+					this.plugin.settings.includeHeading = value;
+					await this.plugin.saveSettings();
+				})
+			);
+
 		let intervalSetting: Setting;
 		let intervalText: TextComponent;
 
@@ -113,6 +173,22 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 				text.inputEl.addEventListener('blur', () => { void persistInterval(); });
 			});
 		applyIntervalDisabled(!this.plugin.settings.autoRefresh);
+
+		new Setting(containerEl).setName('Quoth compatibility').setHeading();
+
+		new Setting(containerEl)
+			.setName('Render quoth blocks')
+			.setDesc('Also render code blocks written for the deprecated Quoth plugin. '
+				+ 'Reload Obsidian after changing this, and uninstall Quoth first so the two plugins '
+				+ 'do not both claim the "quoth" code block.')
+			.addToggle(toggle =>
+				toggle.setValue(this.plugin.settings.renderQuothBlocks).onChange(async value => {
+					this.plugin.log("Render Quoth Blocks", value);
+					this.plugin.settings.renderQuothBlocks = value;
+					await this.plugin.saveSettings();
+					new Notice('Dynbedded: reload Obsidian for the quoth setting to take effect.');
+				})
+			);
 
 // Leave this alone!
 		containerEl.createEl('hr');

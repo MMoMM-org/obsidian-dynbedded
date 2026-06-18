@@ -14,7 +14,20 @@ Sourced from [GitHub Issues](https://github.com/MMoMM-org/obsidian-dynbedded/iss
 
 ## Pending Confirmation
 
-*(none)*
+Epic [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31) — Quoth replacement (silent strategy). Built on a syntax-agnostic `EmbedRequest` model (`src/EmbedRequest.ts`) with two front-end parsers (`parsers/DynbeddedParser.ts`, `parsers/QuothParser.ts`) and one `SelectorResolver`. See `docs/superpowers/specs/2026-06-18-quoth-replacement-design.md`.
+
+| Task | Commit |
+|------|--------|
+| Phase 0 — `EmbedRequest` model + parser/resolver split (behaviour-preserving) | `44ffc53` |
+| #26 — Range embedding (`after` / `from`-`to` / multi-range) | `9012670` |
+| #27 — Inline display (`display: embedded\|inline`, `defaultDisplay` setting) | `111dc78` |
+| #31 — Opt-in silent rendering of `quoth` blocks (`renderQuothBlocks`) | `75af261` |
+| #28 — Source attribution footer (`show: author, title`) | `8266583` |
+| #29 — "Copy reference" command (selection → dynbedded block) | `5a947a4` |
+| #30 (reduced) — "Convert quoth blocks in current note" command | `f3d0a57` |
+| #31 follow-up — Quoth visual parity: quote styling (`--interactive-accent` accent + indent), source-link icon, include-heading (per-block `includeHeading: true\|false`, setting = default) | `54da5c3`, `72d224b` |
+
+> **#30 scope note:** under the silent strategy the bulk vault-wide migration is intentionally dropped — `quoth` notes render as-is. Only the per-note convert command remains. The daily-note template change is a vault-side action documented in the README.
 
 ---
 

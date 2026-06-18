@@ -2,5 +2,10 @@
   "debugLogging": false,
   "silentMode": false,
   "autoRefresh": false,
-  "refreshIntervalSeconds": 10
+  "refreshIntervalSeconds": 10,
+  "defaultDisplay": "embedded",
+  "renderQuothBlocks": false,
+  "quoteStyle": true,
+  "showSourceLink": true,
+  "includeHeading": false
 }

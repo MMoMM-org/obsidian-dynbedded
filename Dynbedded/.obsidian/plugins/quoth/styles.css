@@ -1,0 +1,80 @@
+.quoth-author {
+  font-weight: bold;
+}
+.quoth-title {
+  font-style: italic;
+}
+.quoth-source span:first-child::before {
+  content: "- ";
+}
+.quoth-author + .quoth-title::before {
+  content: ": ";
+  font-style: normal;
+}
+.quoth-copy-button {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.2));
+}
+
+.quoth-embedded-view {
+  font-size: 1rem;
+  padding: var(--embed-padding);
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow-y: auto;
+  overflow-wrap: break-word;
+  color: var(--text-normal);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.markdown-embed .quoth-embedded-view .markdown-preview-sizer,
+.markdown-preview-view
+  .markdown-embed
+  .quoth-embedded-view
+  .markdown-preview-sizer {
+  padding: 0;
+}
+
+.markdown-source-view .block-language-quoth + .edit-block-button {
+  top: calc((var(--icon-s) + var(--size-4-3)) * 2);
+}
+
+.markdown-source-view .block-language-quoth .markdown-embed-link {
+  padding: var(--size-2-2) var(--size-2-3);
+}
+
+.quoth-item-copy {
+  position: absolute;
+  top: calc(var(--icon-s) + var(--size-4-3));
+  right: 4px;
+  color: var(--icon-color);
+  opacity: var(--icon-opacity);
+  cursor: var(--cursor-link);
+  padding: var(--size-2-2) var(--size-2-3);
+  border-radius: var(--radius-s);
+  display: flex;
+  align-items: center;
+  --icon-size: var(--icon-s);
+  --icon-stroke: var(--icon-s-stroke-width);
+}
+
+@media (hover: hover) {
+  .quoth-item-copy:hover {
+    color: var(--icon-color-hover);
+    opacity: var(--icon-opacity-hover);
+    background: var(--background-modifier-hover);
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "copySettings": {
+    "defaultShow": {
+      "title": false,
+      "author": false
+    },
+    "showMobileButton": false
+  },
+  "index": [
+    {
+      "sourceFile": "Quoth Source.md",
+      "subPath": "",
+      "ranges": [
+        "after \"# Schedule\""
+      ],
+      "refFile": "Quoth vs Dynbedded.md",
+      "refIdx": 0
+    },
+    {
+      "sourceFile": "Quoth Source.md",
+      "subPath": "",
+      "ranges": [
+        "\"# Schedule\" to \"# Footer\""
+      ],
+      "refFile": "Quoth vs Dynbedded.md",
+      "refIdx": 1
+    },
+    {
+      "sourceFile": "Quoth Source.md",
+      "subPath": "#Schedule",
+      "ranges": [],
+      "refFile": "Quoth vs Dynbedded.md",
+      "refIdx": 2
+    },
+    {
+      "sourceFile": "Quoth Source.md",
+      "subPath": "",
+      "ranges": [
+        "after \"# Schedule\""
+      ],
+      "refFile": "Quoth vs Dynbedded.md",
+      "refIdx": 3
+    },
+    {
+      "sourceFile": "Quoth Source.md",
+      "subPath": "#Schedule",
+      "ranges": [],
+      "refFile": "Quoth vs Dynbedded.md",
+      "refIdx": 4
+    },
+    {
+      "sourceFile": "Quoth Source.md",
+      "subPath": "",
+      "ranges": [
+        "\"09:00 Standup\" to \"10:00 Deep work\"",
+        "\"14:00 Review\""
+      ],
+      "refFile": "Quoth vs Dynbedded.md",
+      "refIdx": 5
+    }
+  ]
+}

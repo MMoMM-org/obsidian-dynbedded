@@ -1,13 +1,17 @@
-import {App, Component, MarkdownPostProcessorContext, MarkdownRenderer, TFile} from "obsidian";
+import { App, Component, MarkdownPostProcessorContext, MarkdownRenderer, setIcon, TFile } from "obsidian";
 import Dynbedded from "./main";
+import { Anchor, DynbeddedError, EmbedRequest, ParseFn, Selector } from "./EmbedRequest";
+import { SelectorResolver } from "./SelectorResolver";
 
 export class DynbeddedProcessor {
     private plugin: Dynbedded;
     private app: App;
+    private resolver: SelectorResolver;
 
     constructor(app: App, plugin: Dynbedded) {
         this.plugin = plugin;
         this.app = app;
+        this.resolver = new SelectorResolver(app, plugin);
     }
 
     private showError(el: HTMLElement, message: string) {
@@ -18,131 +22,180 @@ export class DynbeddedProcessor {
         }
     }
 
-    async render(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext, component: Component) {
-
-        const headerHierarchy = /^headerHierarchy:\s*true\s*$/m.test(source);
-        this.plugin.log("HeaderHierarchy", headerHierarchy);
-
-        const fileNameMatchPattern = /\[\[([^\]]{2}.*)\]\]/u;
-        const fileNameMatch = fileNameMatchPattern.exec(source);
-
-        this.plugin.log("FileNameMatch", fileNameMatch);
-        if (!fileNameMatch) {
-            this.showError(el, "Bad file link: " + source);
-            return;
-        }
-
-        let fileName = fileNameMatch[1];
-
-        // #7: split BEFORE date substitution so each part can have its own {{...}} token
-        let header = "";
-        if (fileName.contains("#")) {
-            const __ret = this.splitFileName(fileName);
-            header = __ret.header;
-            fileName = __ret.fileName;
-        }
-
-        // Apply dynamic date substitution to fileName
-        const dynamicDateMatchPattern = /{{(.*)}}/;
-        const filenameDateMatch = dynamicDateMatchPattern.exec(fileName);
-        this.plugin.log("DynamicDateMatch (filename)", filenameDateMatch);
-
-        if (filenameDateMatch !== null) {
-            const {dynamicDateFormat, dynamicDate} = this.getDynamicDate(filenameDateMatch);
-            // Todo: figure out how to handle wrong formats correctly.. most formats are valid but create undesired results...
-            if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
-                this.showError(el, "Not a valid Moment.js Time format: " + dynamicDateFormat);
+    async render(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext, component: Component, parse: ParseFn) {
+        let request: EmbedRequest;
+        try {
+            request = parse(source, {
+                display: this.plugin.settings.defaultDisplay,
+                includeHeading: this.plugin.settings.includeHeading,
+            });
+            this.resolveDates(request);
+        } catch (error) {
+            if (error instanceof DynbeddedError) {
+                this.showError(el, error.message);
                 return;
             }
-            fileName = fileName.replace(dynamicDateMatchPattern, dynamicDate);
-            this.plugin.log("DynamicFileName", fileName);
+            throw error;
         }
+        this.plugin.log("EmbedRequest", request);
 
-        // Apply dynamic date substitution to header (#7)
-        if (header !== "") {
-            const headerDateMatch = dynamicDateMatchPattern.exec(header);
-            this.plugin.log("DynamicDateMatch (header)", headerDateMatch);
-            if (headerDateMatch !== null) {
-                const {dynamicDateFormat, dynamicDate} = this.getDynamicDate(headerDateMatch);
-                if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
-                    this.showError(el, "Not a valid Moment.js Time format: " + dynamicDateFormat);
-                    return;
-                }
-                header = header.replace(dynamicDateMatchPattern, dynamicDate);
-                this.plugin.log("DynamicHeader", header);
-            }
-        }
-        const matchingFile = this.app.metadataCache.getFirstLinkpathDest(fileName, '');
+        const matchingFile = this.app.metadataCache.getFirstLinkpathDest(request.fileName, '');
         this.plugin.log("MatchingFile", matchingFile);
-
         if (!matchingFile) {
-            this.showError(el, "File link not found: [[" + fileName + "]]");
+            this.showError(el, "File link not found: [[" + request.fileName + "]]");
             return;
         }
-        // Todo: could this be moved up?
         if (matchingFile.extension !== "md") {
             this.showError(el, "Bad file extension found, expected markdown: " + matchingFile.path);
             return;
         }
 
-        let fileContents = ""
-        if (header != "") {
-            // #4: guard against null cache (e.g. cache not yet built)
-            const fileCache = this.app.metadataCache.getFileCache(matchingFile);
-            if (!fileCache) {
-                this.showError(el, "File cache not available for [[" + fileName + "]]");
+        let fileContents: string;
+        try {
+            fileContents = await this.resolver.resolve(matchingFile, request);
+        } catch (error) {
+            if (error instanceof DynbeddedError) {
+                this.showError(el, error.message);
                 return;
             }
-            const headings = fileCache.headings;
-            if (headings === null || headings === undefined) {
-                const errorMessage = "Header \"" + header + "\" not found in [[" + fileName + "]]";
-                this.showError(el, errorMessage);
-                return;
-            }
-            this.plugin.log("Headings", headings);
-            let position: {start: number, end: number} | undefined;
-            for (let i = 0; i < headings.length; i++) {
-                const heading = headings[i];
-                this.plugin.log("Heading", heading)
-                if (heading.heading == header) {
-                    position = {
-                        start: heading.position.start.line,
-                        end: (() => {
-                            if (!headerHierarchy) {
-                                // existing behaviour: stop at next heading of any level
-                                return i == headings.length - 1 ? -1 : headings[i + 1].position.start.line;
-                            }
-                            // #2: stop only at heading of equal or higher level (lower or equal level number)
-                            for (let j = i + 1; j < headings.length; j++) {
-                                if (headings[j].level <= heading.level) {
-                                    return headings[j].position.start.line;
-                                }
-                            }
-                            return -1; // no equal/higher heading found → rest of file
-                        })(),
-                    };
-                    break; // #5: stop after first match
-                }
-            }
-            // #3: distinguish "not found" from "found but empty"
-            if (position === undefined) {
-                this.showError(el, "Header \"" + header + "\" not found in [[" + fileName + "]]");
-                return;
-            }
-            fileContents = await this.getHeaderSectionContent(matchingFile, position, fileContents);
-            if (fileContents == "") {
-                // Header exists but has no content — render nothing silently
-                return;
-            }
-        } else {
-            fileContents = await this.app.vault.cachedRead(matchingFile);
+            throw error;
         }
-        this.plugin.log("File", fileContents)
-        const container = el.createDiv({cls: [Dynbedded.containerClass]});
+
+        // Header exists but has no content — render nothing silently (existing behaviour).
+        if (fileContents === "" && request.selector.kind === "subpath") {
+            return;
+        }
+
+        this.plugin.log("File", fileContents);
         // Use the per-block render child as the component so any children
         // registered by MarkdownRenderer are released when the block unloads.
         // Passing the plugin would tie them to the plugin's lifetime → leak.
-        await MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, component);
+        let contentEl: HTMLElement;
+        if (request.display === "inline") {
+            contentEl = await this.renderInline(fileContents, el, ctx.sourcePath, component);
+        } else {
+            contentEl = el.createDiv({cls: [Dynbedded.containerClass]});
+            await MarkdownRenderer.render(this.app, fileContents, contentEl, ctx.sourcePath, component);
+            if (this.plugin.settings.quoteStyle) {
+                contentEl.addClass("dynbedded-quote-style");
+            }
+        }
+
+        if (this.plugin.settings.showSourceLink) {
+            this.renderSourceLink(contentEl, matchingFile, component, request.display);
+        }
+
+        if (request.attribution.length > 0) {
+            this.renderAttribution(el, matchingFile, request.attribution);
+        }
+    }
+
+    // Optional link icon that opens the embedded note (#b). For embedded display it
+    // sits in the top-right corner; for inline it trails the content.
+    private renderSourceLink(contentEl: HTMLElement, file: TFile, component: Component, display: 'embedded' | 'inline') {
+        const link = contentEl.createSpan({
+            cls: "dynbedded-source-link",
+            attr: { "aria-label": "Open " + file.basename, role: "link", tabindex: "0" },
+        });
+        setIcon(link, "link");
+        if (display === "embedded") {
+            contentEl.addClass("dynbedded-has-link");
+        } else {
+            link.addClass("dynbedded-source-link-inline");
+        }
+        const open = () => { void this.app.workspace.getLeaf(false).openFile(file); };
+        component.registerDomEvent(link, "click", open);
+        component.registerDomEvent(link, "keydown", (event: KeyboardEvent) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                open();
+            }
+        });
+    }
+
+    // Renders a source-attribution footer (#28). Title falls back to the file
+    // basename; author comes from frontmatter. Order follows the `show:` list.
+    private renderAttribution(el: HTMLElement, file: TFile, attribution: ('author' | 'title')[]) {
+        const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+        const parts: string[] = [];
+        for (const field of attribution) {
+            if (field === "title") {
+                parts.push(String(frontmatter?.title ?? file.basename));
+            } else if (frontmatter?.author !== undefined && frontmatter.author !== null) {
+                parts.push(String(frontmatter.author));
+            }
+        }
+        if (parts.length === 0) {
+            return;
+        }
+        el.createEl("cite", {
+            cls: [Dynbedded.containerClass, "dynbedded-attribution"],
+            text: "— " + parts.join(", "),
+        });
+    }
+
+    // Inline display: render into an inline span and unwrap a single top-level
+    // paragraph so the content flows as one run. Multi-block content (lists,
+    // multiple paragraphs) is left intact as a graceful fallback.
+    private async renderInline(content: string, el: HTMLElement, sourcePath: string, component: Component): Promise<HTMLElement> {
+        const span = el.createSpan({cls: [Dynbedded.containerClass, "dynbedded-inline"]});
+        await MarkdownRenderer.render(this.app, content, span, sourcePath, component);
+        if (span.childElementCount === 1 && span.firstElementChild?.tagName === "P") {
+            const paragraph = span.firstElementChild;
+            while (paragraph.firstChild) {
+                span.insertBefore(paragraph.firstChild, paragraph);
+            }
+            paragraph.remove();
+        }
+        return span;
+    }
+
+    // Resolves {{...}} date tokens in the filename and in every selector anchor.
+    private resolveDates(request: EmbedRequest) {
+        request.fileName = this.substituteDate(request.fileName);
+        request.selector = this.resolveSelectorDates(request.selector);
+    }
+
+    private resolveSelectorDates(selector: Selector): Selector {
+        switch (selector.kind) {
+            case "subpath":
+                return { kind: "subpath", subpath: this.substituteDate(selector.subpath) };
+            case "after":
+                return { kind: "after", anchor: this.resolveAnchorDates(selector.anchor) };
+            case "between":
+                return {
+                    kind: "between",
+                    from: this.resolveAnchorDates(selector.from),
+                    to: this.resolveAnchorDates(selector.to),
+                };
+            case "multi":
+                return { kind: "multi", parts: selector.parts.map(part => this.resolveSelectorDates(part)) };
+            case "whole":
+                return selector;
+        }
+    }
+
+    private resolveAnchorDates(anchor: Anchor): Anchor {
+        return anchor.kind === "text"
+            ? { kind: "text", text: this.substituteDate(anchor.text) }
+            : anchor;
+    }
+
+    private substituteDate(value: string): string {
+        const pattern = /{{(.*)}}/;
+        const match = pattern.exec(value);
+        this.plugin.log("DynamicDateMatch", match);
+        if (match === null) {
+            return value;
+        }
+        const {dynamicDateFormat, dynamicDate} = this.getDynamicDate(match);
+        // Todo: figure out how to handle wrong formats correctly.. most formats are valid but create undesired results...
+        if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
+            throw new DynbeddedError("Not a valid Moment.js Time format: " + dynamicDateFormat);
+        }
+        const result = value.replace(pattern, dynamicDate);
+        this.plugin.log("DynamicValue", result);
+        return result;
     }
 
     private getDynamicDate(dynamicDateMatch: RegExpExecArray) {
@@ -167,24 +220,4 @@ export class DynbeddedProcessor {
         this.plugin.log("DynamicDate", dynamicDate);
         return {dynamicDateFormat, dynamicDate};
     }
-
-    private async getHeaderSectionContent(matchingFile: TFile, position: {start: number, end: number}, fileContents: string) {
-        let text = await this.app.vault.cachedRead(matchingFile)
-        if (!text.endsWith("\n")) {
-            text = text + "\n"
-        }
-        this.plugin.log("Position", position);
-        this.plugin.log("Text", text);
-        fileContents = text.split("\n").slice(position.start + 1, position.end).join("\n");
-        this.plugin.log("Split", fileContents)
-        return fileContents;
-    }
-
-   private splitFileName(fileName: string) {
-        const header = fileName.split("#")[1];
-        fileName = fileName.split("#")[0];
-        this.plugin.log("Header", header);
-        return {header, fileName};
-    }
 }
-
