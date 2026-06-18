@@ -1,8 +1,9 @@
-import {Notice, Plugin} from 'obsidian';
+import {Editor, MarkdownFileInfo, MarkdownView, Notice, Plugin} from 'obsidian';
 import {DEFAULT_SETTINGS, DynbeddedSettings, DynbeddedSettingTab} from './DynbeddedSettingTab';
 import { DynbeddedBlock } from './DynbeddedBlock';
-import { parseDynbedded } from './parsers/DynbeddedParser';
+import { parseDynbedded, serializeDynbedded } from './parsers/DynbeddedParser';
 import { parseQuoth } from './parsers/QuothParser';
+import { buildReference } from './commands/CopyReference';
 
 type LogType = typeof console.log;
 
@@ -53,6 +54,20 @@ export default class Dynbedded extends Plugin {
 				new Notice('Dynbedded: could not render quoth blocks — is the Quoth plugin still installed? Uninstall it and reload.');
 			}
 		}
+
+		this.addCommand({
+			id: 'copy-dynbedded-reference',
+			name: 'Copy reference',
+			editorCallback: (editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => {
+				const file = ctx.file;
+				if (!file) {
+					return;
+				}
+				const block = serializeDynbedded(buildReference(editor, file));
+				void navigator.clipboard.writeText(block);
+				new Notice('Dynbedded reference copied to clipboard');
+			},
+		});
 	}
 
 	onunload() {

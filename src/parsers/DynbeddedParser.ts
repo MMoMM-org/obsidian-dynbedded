@@ -1,4 +1,4 @@
-import { DEFAULT_JOIN, DynbeddedError, EmbedRequest, Selector } from '../EmbedRequest';
+import { Anchor, DEFAULT_JOIN, DynbeddedError, EmbedRequest, Selector } from '../EmbedRequest';
 import { DisplayMode } from '../DynbeddedSettingTab';
 import { parseShow } from './shared';
 
@@ -45,6 +45,33 @@ export function parseDynbedded(source: string, defaultDisplay: DisplayMode = 'em
         headerHierarchy: HEADER_HIERARCHY.test(source),
         join: DEFAULT_JOIN,
     };
+}
+
+// Serialises an EmbedRequest back into a ready-to-paste dynbedded code block.
+// Inverse of parseDynbedded; used by the "Copy Dynbedded reference" command (#29).
+export function serializeDynbedded(request: EmbedRequest): string {
+    const subpath = request.selector.kind === 'subpath' ? '#' + request.selector.subpath : '';
+    const lines: string[] = [`[[${request.fileName}${subpath}]]`];
+
+    if (request.selector.kind === 'after') {
+        lines.push(`after: ${serializeAnchor(request.selector.anchor)}`);
+    } else if (request.selector.kind === 'between') {
+        lines.push(`from: ${serializeAnchor(request.selector.from)}`);
+        lines.push(`to: ${serializeAnchor(request.selector.to)}`);
+    }
+
+    if (request.display === 'inline') {
+        lines.push('display: inline');
+    }
+    if (request.attribution.length > 0) {
+        lines.push('show: ' + request.attribution.join(', '));
+    }
+
+    return '```dynbedded\n' + lines.join('\n') + '\n```';
+}
+
+function serializeAnchor(anchor: Anchor): string {
+    return anchor.kind === 'text' ? `"${anchor.text}"` : `${anchor.line}:${anchor.col}`;
 }
 
 function parseSelector(source: string, subpath: string): Selector {
