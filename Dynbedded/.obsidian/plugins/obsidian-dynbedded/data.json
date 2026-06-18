@@ -4,5 +4,8 @@
   "autoRefresh": false,
   "refreshIntervalSeconds": 10,
   "defaultDisplay": "embedded",
-  "renderQuothBlocks": false
+  "renderQuothBlocks": false,
+  "quoteStyle": true,
+  "showSourceLink": true,
+  "includeHeading": false
 }

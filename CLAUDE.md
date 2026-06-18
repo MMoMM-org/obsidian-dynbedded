@@ -45,6 +45,7 @@ from: "X"              # text-anchored range, both ends inclusive
 to: "Y"
 display: inline        # embedded (default) | inline
 show: title, author    # attribution footer
+includeHeading: true   # render the heading line in a #header section (overrides setting default)
 headerHierarchy: true  # section ends at equal/higher heading only
 ```
 ````

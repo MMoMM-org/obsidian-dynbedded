@@ -54,9 +54,15 @@ Quoth:
 path: [[Quoth Source#Schedule]]
 ```
 
-Dynbedded:
+Dynbedded (default — heading line excluded):
 ```dynbedded
 [[Quoth Source#Schedule]]
+```
+
+Dynbedded with `includeHeading: true` (should now match Quoth — shows `# Schedule`):
+```dynbedded
+[[Quoth Source#Schedule]]
+includeHeading: true
 ```
 
 ---

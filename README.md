@@ -171,7 +171,14 @@ These are settings (off by default, so existing notes are unchanged):
 
 - **Quote styling** — render embedded (block) content with a coloured left accent and a slight indent, like a quote.
 - **Show source link** — add a small link icon to each embed that opens the original note.
-- **Include heading in section** — when embedding a `#Heading` section, also render the heading line itself. Off keeps the original behaviour of starting below the heading; this does not affect `after:` ranges.
+- **Include heading in section** — when embedding a `#Heading` section, also render the heading line itself. Off keeps the original behaviour of starting below the heading; this does not affect `after:` ranges. A block can override the setting with `includeHeading: true` or `includeHeading: false`:
+
+~~~
+```dynbedded
+[[MyNote#Section]]
+includeHeading: true
+```
+~~~
 
 ## Commands
 
