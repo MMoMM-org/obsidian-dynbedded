@@ -114,6 +114,78 @@ Dynbedded blocks can automatically re-render at a configurable interval — usef
 
 Enable **Auto-Refresh** in the plugin settings and set the desired interval (10–3600 seconds, default 60). The setting is off by default and changes take effect when the note is reopened.
 
+## Range embedding
+
+Embed only part of a note, not just a whole note or a whole `#section`.
+
+- `after: "anchor"` — everything from the anchor line (exclusive) to the **end of the file**. The anchor is matched against the raw line text, so a heading anchor includes its `#`:
+
+~~~
+```dynbedded
+[[{{[DP-]YYYY-MM-DD}}]]
+after: "# Schedule"
+```
+~~~
+
+- `from: "X"` / `to: "Y"` — a text-anchored range, both ends inclusive:
+
+~~~
+```dynbedded
+[[MyNote]]
+from: "## Start"
+to: "## End"
+```
+~~~
+
+Anchors support date substitution (`{{...}}`) just like the note name. Note that `after:` runs to the end of the file, which is deliberately different from a `#Header` embed (that stops at the next heading).
+
+## Inline display
+
+By default an embed renders as a block. Set `display: inline` to drop the surrounding paragraph so the content flows as one run:
+
+~~~
+```dynbedded
+[[MyNote#Quote]]
+display: inline
+```
+~~~
+
+`display` accepts `embedded` (the default, block) or `inline`. The default can be changed in the settings (**Default display mode**).
+
+## Source attribution
+
+Add a citation footer after the embedded content with `show:`:
+
+~~~
+```dynbedded
+[[MyNote#Quote]]
+show: title, author
+```
+~~~
+
+`title` falls back to the note's file name; `author` is read from the note's frontmatter.
+
+## Commands
+
+- **Copy reference** — turns the current selection (or cursor) in the active note into a ready-to-paste `dynbedded` block on the clipboard.
+- **Convert quoth blocks in current note** — rewrites every `quoth` block in the active note as an equivalent `dynbedded` block.
+
+## Quoth compatibility
+
+Dynbedded can render code blocks written for the deprecated [Quoth](https://github.com/erykwalder/quoth) plugin, so you can uninstall Quoth without rewriting any notes.
+
+Enable **Render quoth blocks** in the settings, then **reload Obsidian and uninstall Quoth** — only one plugin can own the `quoth` code block, so Quoth must be gone first.
+
+~~~
+```quoth
+path: [[DP-2026-06-09]]
+ranges: after "# Schedule"
+display: inline
+```
+~~~
+
+Supported Quoth fields: `path` (incl. `#heading` and `#^block` subpaths), `ranges` (`after`, `"X" to "Y"`, `line:col`, multiple ranges), `join`, `display` (`embedded`/`inline`) and `show` (`author`/`title`). The setting is off by default.
+
 ## Possible P+1D features
 PS: No, I won't deliver those features tomorrow 😀
 
@@ -128,6 +200,8 @@ You can style the embedded content with a style sheet. The following styles are 
 
 - .dynbedded = for the normal display. There is no default value for this at the moment. (This styling needs to be in front of the error Styling if you restyle both!)
 - .dynbedded-error = for error messages, by default red. See [styles.css](styles.css)
+- .dynbedded-inline = wraps content rendered with `display: inline`.
+- .dynbedded-attribution = the `show:` source-attribution footer.
 
 After creating your own style sheet you need to copy it to the .obsidian/snippets folder and enable the style sheet in Appearance / CSS Snippets.
 
