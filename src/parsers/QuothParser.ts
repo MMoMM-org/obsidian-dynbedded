@@ -1,5 +1,5 @@
 import { Anchor, DEFAULT_JOIN, DynbeddedError, EmbedRequest, Selector } from '../EmbedRequest';
-import { DisplayMode } from '../DynbeddedSettingTab';
+import type { DisplayMode } from '../DynbeddedSettingTab';
 import { parseShow, splitTopLevel } from './shared';
 
 // Opt-in compatibility adapter: parses the deprecated Quoth code-block syntax
