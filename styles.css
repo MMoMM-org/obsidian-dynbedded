@@ -40,7 +40,7 @@
 .dynbedded-has-link > .dynbedded-source-link {
     position: absolute;
     /* sit below Obsidian's code-block "<>" button (top-right) and a few px further left */
-    top: 2.3em;
+    top: 1.2em;
     right: calc(0.4em + 6px);
 }
 .dynbedded-source-link-inline {
