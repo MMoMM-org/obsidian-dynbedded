@@ -52,7 +52,7 @@ headerHierarchy: true  # section ends at equal/higher heading only
 
 - `{{format}}` — replaced with `moment().format(format)`, supports ISO duration or day offsets via `|` (e.g. `{{YYYY-MM-DD|-1}}` = yesterday); applies to the filename and to text anchors
 - `#Header` — extracts only the content under that heading (until the next heading); `after:` instead runs to end of file
-- The opt-in `quoth` front-end (`renderQuothBlocks`) maps `path` / `ranges` / `join` / `display` / `show` onto the same model — see the Quoth replacement spec under `docs/superpowers/specs/`.
+- The opt-in `quoth` front-end (`renderQuothBlocks`) maps `path` / `ranges` / `join` / `display` / `show` onto the same model — see the Quoth replacement spec under `docs/XDD/specs/001-quoth-replacement/`.
 
 ### Rendering flow (`DynbeddedProcessor.render`)
 
