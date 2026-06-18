@@ -1,3 +1,22 @@
+# [1.5.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.4.0...1.5.0) (2026-06-18)
+
+
+### Bug Fixes
+
+* use --interactive-accent for quote-style border, not --color-purple ([ee5fe3b](https://github.com/MMoMM-org/obsidian-dynbedded/commit/ee5fe3b76899583830bfb3e86475a6864b1e04a6))
+
+
+### Features
+
+* "Convert quoth blocks in current note" command ([f3d0a57](https://github.com/MMoMM-org/obsidian-dynbedded/commit/f3d0a57e0e4365c391806acd53972560786db9fa)), closes [#30](https://github.com/MMoMM-org/obsidian-dynbedded/issues/30) [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31)
+* "Copy reference" command builds a dynbedded block from selection ([5a947a4](https://github.com/MMoMM-org/obsidian-dynbedded/commit/5a947a48d224e450bb14ce0f5dedabad2a5782aa)), closes [#Heading](https://github.com/MMoMM-org/obsidian-dynbedded/issues/Heading) [#29](https://github.com/MMoMM-org/obsidian-dynbedded/issues/29)
+* inline display mode (display: inline) ([111dc78](https://github.com/MMoMM-org/obsidian-dynbedded/commit/111dc780aa0c4082a970e864a96862e00ce8d9c3)), closes [#27](https://github.com/MMoMM-org/obsidian-dynbedded/issues/27) [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31)
+* opt-in silent rendering of quoth code blocks ([75af261](https://github.com/MMoMM-org/obsidian-dynbedded/commit/75af2619a0c30b6a8dad3e511c1e14f6bc566071)), closes [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31)
+* per-block includeHeading override; nudge source-link icon ([72d224b](https://github.com/MMoMM-org/obsidian-dynbedded/commit/72d224bc37873351f74fee60f989a61de27d6c71)), closes [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31)
+* quote styling, source-link icon & include-heading options ([54da5c3](https://github.com/MMoMM-org/obsidian-dynbedded/commit/54da5c3ac930f532e25c10d162fb06224befff45)), closes [#heading](https://github.com/MMoMM-org/obsidian-dynbedded/issues/heading) [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31)
+* range embedding — after / from-to / multi-range selectors ([9012670](https://github.com/MMoMM-org/obsidian-dynbedded/commit/90126709e248ef823bae0ef36d195e8af5fee1b5)), closes [#header](https://github.com/MMoMM-org/obsidian-dynbedded/issues/header) [#26](https://github.com/MMoMM-org/obsidian-dynbedded/issues/26) [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31)
+* source attribution footer (show: author / title) ([8266583](https://github.com/MMoMM-org/obsidian-dynbedded/commit/8266583a68df1eaad8d0dffe6fac59acf82c9557)), closes [#28](https://github.com/MMoMM-org/obsidian-dynbedded/issues/28) [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31)
+
 # [1.4.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.3.1...1.4.0) (2026-06-11)
 
 
