@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-18
 **Branch:** `docs/quoth-replacement-spec`
-**Status:** Draft — pending decision on compatibility strategy
+**Status:** Approved — strategy = Silent only (opt-in `renderQuothBlocks`); bulk migration dropped. See `.claude/plans/quiet-juggling-finch.md`.
 **Epic:** [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31)
 **Issues:** [#26](https://github.com/MMoMM-org/obsidian-dynbedded/issues/26) · [#27](https://github.com/MMoMM-org/obsidian-dynbedded/issues/27) · [#28](https://github.com/MMoMM-org/obsidian-dynbedded/issues/28) · [#29](https://github.com/MMoMM-org/obsidian-dynbedded/issues/29) · [#30](https://github.com/MMoMM-org/obsidian-dynbedded/issues/30)
 
@@ -64,26 +64,31 @@ This works *only* if #26 is built around a **syntax-agnostic internal model** (`
 
 Introduce an internal request object that both front-ends produce and the renderer consumes. This is the load-bearing change; everything else hangs off it.
 
+> **Implemented** in `src/EmbedRequest.ts` (Phase 0). Corrected against the Quoth README
+> after this spec's first draft: `display` uses Quoth's `embedded | inline` vocabulary (not
+> `block`), positional addressing is `line:col` (not bare line numbers), and `join` defaults to
+> `" ... "` (not a newline).
+
 ```ts
 interface EmbedRequest {
-    fileName: string;            // post date-substitution target (no #header, no [[ ]])
-    selector: Selector;          // what slice of the file to embed
-    display: 'block' | 'inline'; // #27
-    attribution?: AttributionSpec; // #28 — title / author footer, optional
-    headerHierarchy: boolean;    // existing #2 flag, now only meaningful for heading selectors
+    fileName: string;                     // link target; {{...}} tokens resolved by the orchestrator
+    selector: Selector;                   // what slice of the file to embed
+    display: 'embedded' | 'inline';       // #27 — 'embedded' === block (Quoth default)
+    attribution: ('author' | 'title')[];  // #28 — title / author footer; empty = none
+    headerHierarchy: boolean;             // existing #2 flag, only meaningful for heading selectors
+    join: string;                         // #26 multi-range separator; default " ... "
 }
 
 type Selector =
-    | { kind: 'whole' }                                   // [[File]]
-    | { kind: 'header'; header: string }                  // [[File#Header]] — current behaviour
-    | { kind: 'after'; anchor: Anchor }                   // #26 after "X"
-    | { kind: 'between'; from: Anchor; to: Anchor }       // #26 from "X" to "Y"
-    | { kind: 'lines'; start: number; end: number }       // #26 lines: 10-20
-    | { kind: 'multi'; parts: Selector[]; join: string }; // #26 multi-range (Quoth join)
+    | { kind: 'whole' }                              // [[File]]
+    | { kind: 'subpath'; subpath: string }           // [[File#Heading]] / #^block / #-list
+    | { kind: 'after'; anchor: Anchor }              // #26 after "X" / after line:col
+    | { kind: 'between'; from: Anchor; to: Anchor }  // #26 "X" to "Y"
+    | { kind: 'multi'; parts: Selector[] };          // #26 multi-range, joined by EmbedRequest.join
 
 type Anchor =
-    | { kind: 'heading'; text: string }   // matches a heading by its text
-    | { kind: 'text'; text: string };     // matches an arbitrary line containing the text
+    | { kind: 'text'; text: string }                 // matches a line by raw text (incl. any '#')
+    | { kind: 'pos'; line: number; col: number };    // positional, line:col (Quoth)
 ```
 
 Pipeline:
@@ -127,8 +132,8 @@ The `SelectorResolver`. Operates on the file's lines + heading cache (already us
   - Heading anchor: reuse current header-section logic, honouring `headerHierarchy` for where the section ends.
   - Text anchor: first line containing the literal text → to end of file (or next blank-line block — see open question Q2).
 - **`from "X" to "Y"`** — first line matching X (inclusive) to next line matching Y (inclusive/exclusive — Q3).
-- **`lines: N-M`** — 1-based inclusive line range.
-- **multi-range / `join`** — array of selectors, concatenated with a join string (default `\n`).
+- **`line:col` positional** — Quoth's column-precise addressing (`line:col to line:col`, `after line:col`). Lower priority — the real daily-note workflow uses only text-anchored `after`.
+- **multi-range / `join`** — array of selectors, concatenated with `EmbedRequest.join` (Quoth default `" ... "`, **not** a newline).
 - Composes with existing date substitution (anchors may contain `{{…}}`) and `headerHierarchy`.
 
 **Dynbedded-native syntax** (new keys, all optional, default = today's behaviour):
@@ -142,14 +147,10 @@ after: "# Schedule"
 from: "## Start"
 to: "## End"
 ```
-```dynbedded
-[[File]]
-lines: 10-20
-```
 
 ### #27 — Inline display · Effort S
 
-`display: inline | block` (default `block`). Inline renders the slice into the text flow rather than a wrapping `<div>`/`<p>`. Implementation: render via `MarkdownRenderer.render`, then unwrap the single top-level `<p>` (or use the inline render path). Block stays the current behaviour.
+`display: embedded | inline` (default `embedded`; `embedded` === today's block behaviour). Inline renders the slice into the text flow rather than a wrapping `<div>`/`<p>`. Implementation: render via `MarkdownRenderer.render`, then unwrap the single top-level `<p>` (fallback to block for multi-block content). `embedded` stays the current behaviour.
 
 ### #28 — Source attribution · Effort S
 
@@ -172,7 +173,7 @@ New fields in `DynbeddedSettings`, all default off / safe:
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `renderQuothBlocks` | `boolean` | `false` | Also render `quoth` code blocks (silent compatibility). Requires Quoth to be uninstalled. |
-| `defaultDisplay` | `'block' \| 'inline'` | `'block'` | Fallback display when a block omits `display:` |
+| `defaultDisplay` | `'embedded' \| 'inline'` | `'embedded'` | Fallback display when a block omits `display:` |
 
 UI: add a **Quoth compatibility** section with the `renderQuothBlocks` toggle and an inline note about uninstalling Quoth first. Keep developer/debug settings last, as today.
 
@@ -180,23 +181,29 @@ UI: add a **Quoth compatibility** section with the `renderQuothBlocks` toggle an
 
 ## Quoth parity mapping
 
+Ground truth from the [erykwalder/quoth README](https://github.com/erykwalder/quoth/blob/main/README.md):
+`path:` accepts Obsidian subpaths `#Heading` / `#^blockid` / `#-list item` (chainable); `ranges:`
+is `"text"` / `"X" to "Y"` / `line:col to line:col` / `after "text"` / `after line:col`,
+comma-separated for multiple; `join:` default `" ... "`; `display:` is `embedded | inline`
+(default `embedded`); `show:` is `author, title`.
+
 | Quoth | Dynbedded (native) | `EmbedRequest` | Issue |
 |---|---|---|---|
 | `path: [[X]]` | `[[X]]` | `fileName` | — |
-| `path: [[X#H]]` | `[[X#H]]` | `selector: header` | existing |
+| `path: [[X#H]]` / `#^id` / `#-item` | `[[X#…]]` | `selector: subpath` | existing + #31 |
 | `ranges: after "X"` | `after: "X"` | `selector: after` | #26 |
-| `ranges: from "X" to "Y"` | `from: / to:` | `selector: between` | #26 |
-| `ranges: lines 10-20` | `lines: 10-20` | `selector: lines` | #26 |
-| `join` (multi-range) | repeated selectors | `selector: multi` | #26 |
-| `display: inline` | `display: inline` | `display` | #27 |
-| `show: title \| author` | `show: title \| author` | `attribution` | #28 |
+| `ranges: "X" to "Y"` | `from: / to:` | `selector: between` | #26 |
+| `ranges: line:col to line:col` | (native key TBD) | `selector: between` (pos anchors) | #26 |
+| `join` (multi-range) | repeated selectors | `selector: multi` + `join` | #26 |
+| `display: embedded \| inline` | `display: embedded \| inline` | `display` | #27 |
+| `show: author, title` | `show: author, title` | `attribution` | #28 |
 | Copy reference cmd | Copy Dynbedded reference | — | #29 |
 
 ---
 
 ## Risks & open questions
 
-- **Q1 — Quoth anchor literal form.** Does Quoth's `after "# Schedule"` match the heading *including* the `#` markup, or the heading text `Schedule`? Must confirm against real Quoth behaviour before fixing anchor matching, or 2255 notes mismatch. **Pull a handful of real blocks from the Privat vault and diff Quoth's output vs ours.**
+- **Q1 — Quoth anchor literal form.** *Resolved:* `after "# Schedule"` matches the **raw line text including the `#`** (it is an arbitrary-text anchor, not a parsed heading). The text-anchor resolver must match line content literally. Still confirm slice boundaries against real blocks (Q2).
 - **Q2 — Text-anchor section end.** For a non-heading `after "text"`, where does the slice end — EOF, next blank line, or next heading? Match Quoth.
 - **Q3 — `from/to` inclusivity** of the `to` anchor. Match Quoth.
 - **Q4 — Inline + block-level content.** A heading section often contains lists/tables; `display: inline` on multi-block content needs a defined fallback (unwrap only when single-paragraph; otherwise block).

@@ -1,13 +1,18 @@
-import {App, Component, MarkdownPostProcessorContext, MarkdownRenderer, TFile} from "obsidian";
+import { App, Component, MarkdownPostProcessorContext, MarkdownRenderer } from "obsidian";
 import Dynbedded from "./main";
+import { DynbeddedError, EmbedRequest } from "./EmbedRequest";
+import { parseDynbedded } from "./parsers/DynbeddedParser";
+import { SelectorResolver } from "./SelectorResolver";
 
 export class DynbeddedProcessor {
     private plugin: Dynbedded;
     private app: App;
+    private resolver: SelectorResolver;
 
     constructor(app: App, plugin: Dynbedded) {
         this.plugin = plugin;
         this.app = app;
+        this.resolver = new SelectorResolver(app, plugin);
     }
 
     private showError(el: HTMLElement, message: string) {
@@ -19,130 +24,77 @@ export class DynbeddedProcessor {
     }
 
     async render(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext, component: Component) {
-
-        const headerHierarchy = /^headerHierarchy:\s*true\s*$/m.test(source);
-        this.plugin.log("HeaderHierarchy", headerHierarchy);
-
-        const fileNameMatchPattern = /\[\[([^\]]{2}.*)\]\]/u;
-        const fileNameMatch = fileNameMatchPattern.exec(source);
-
-        this.plugin.log("FileNameMatch", fileNameMatch);
-        if (!fileNameMatch) {
-            this.showError(el, "Bad file link: " + source);
-            return;
-        }
-
-        let fileName = fileNameMatch[1];
-
-        // #7: split BEFORE date substitution so each part can have its own {{...}} token
-        let header = "";
-        if (fileName.contains("#")) {
-            const __ret = this.splitFileName(fileName);
-            header = __ret.header;
-            fileName = __ret.fileName;
-        }
-
-        // Apply dynamic date substitution to fileName
-        const dynamicDateMatchPattern = /{{(.*)}}/;
-        const filenameDateMatch = dynamicDateMatchPattern.exec(fileName);
-        this.plugin.log("DynamicDateMatch (filename)", filenameDateMatch);
-
-        if (filenameDateMatch !== null) {
-            const {dynamicDateFormat, dynamicDate} = this.getDynamicDate(filenameDateMatch);
-            // Todo: figure out how to handle wrong formats correctly.. most formats are valid but create undesired results...
-            if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
-                this.showError(el, "Not a valid Moment.js Time format: " + dynamicDateFormat);
+        let request: EmbedRequest;
+        try {
+            request = parseDynbedded(source);
+            this.resolveDates(request);
+        } catch (error) {
+            if (error instanceof DynbeddedError) {
+                this.showError(el, error.message);
                 return;
             }
-            fileName = fileName.replace(dynamicDateMatchPattern, dynamicDate);
-            this.plugin.log("DynamicFileName", fileName);
+            throw error;
         }
+        this.plugin.log("EmbedRequest", request);
 
-        // Apply dynamic date substitution to header (#7)
-        if (header !== "") {
-            const headerDateMatch = dynamicDateMatchPattern.exec(header);
-            this.plugin.log("DynamicDateMatch (header)", headerDateMatch);
-            if (headerDateMatch !== null) {
-                const {dynamicDateFormat, dynamicDate} = this.getDynamicDate(headerDateMatch);
-                if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
-                    this.showError(el, "Not a valid Moment.js Time format: " + dynamicDateFormat);
-                    return;
-                }
-                header = header.replace(dynamicDateMatchPattern, dynamicDate);
-                this.plugin.log("DynamicHeader", header);
-            }
-        }
-        const matchingFile = this.app.metadataCache.getFirstLinkpathDest(fileName, '');
+        const matchingFile = this.app.metadataCache.getFirstLinkpathDest(request.fileName, '');
         this.plugin.log("MatchingFile", matchingFile);
-
         if (!matchingFile) {
-            this.showError(el, "File link not found: [[" + fileName + "]]");
+            this.showError(el, "File link not found: [[" + request.fileName + "]]");
             return;
         }
-        // Todo: could this be moved up?
         if (matchingFile.extension !== "md") {
             this.showError(el, "Bad file extension found, expected markdown: " + matchingFile.path);
             return;
         }
 
-        let fileContents = ""
-        if (header != "") {
-            // #4: guard against null cache (e.g. cache not yet built)
-            const fileCache = this.app.metadataCache.getFileCache(matchingFile);
-            if (!fileCache) {
-                this.showError(el, "File cache not available for [[" + fileName + "]]");
+        let fileContents: string;
+        try {
+            fileContents = await this.resolver.resolve(matchingFile, request);
+        } catch (error) {
+            if (error instanceof DynbeddedError) {
+                this.showError(el, error.message);
                 return;
             }
-            const headings = fileCache.headings;
-            if (headings === null || headings === undefined) {
-                const errorMessage = "Header \"" + header + "\" not found in [[" + fileName + "]]";
-                this.showError(el, errorMessage);
-                return;
-            }
-            this.plugin.log("Headings", headings);
-            let position: {start: number, end: number} | undefined;
-            for (let i = 0; i < headings.length; i++) {
-                const heading = headings[i];
-                this.plugin.log("Heading", heading)
-                if (heading.heading == header) {
-                    position = {
-                        start: heading.position.start.line,
-                        end: (() => {
-                            if (!headerHierarchy) {
-                                // existing behaviour: stop at next heading of any level
-                                return i == headings.length - 1 ? -1 : headings[i + 1].position.start.line;
-                            }
-                            // #2: stop only at heading of equal or higher level (lower or equal level number)
-                            for (let j = i + 1; j < headings.length; j++) {
-                                if (headings[j].level <= heading.level) {
-                                    return headings[j].position.start.line;
-                                }
-                            }
-                            return -1; // no equal/higher heading found → rest of file
-                        })(),
-                    };
-                    break; // #5: stop after first match
-                }
-            }
-            // #3: distinguish "not found" from "found but empty"
-            if (position === undefined) {
-                this.showError(el, "Header \"" + header + "\" not found in [[" + fileName + "]]");
-                return;
-            }
-            fileContents = await this.getHeaderSectionContent(matchingFile, position, fileContents);
-            if (fileContents == "") {
-                // Header exists but has no content — render nothing silently
-                return;
-            }
-        } else {
-            fileContents = await this.app.vault.cachedRead(matchingFile);
+            throw error;
         }
-        this.plugin.log("File", fileContents)
+
+        // Header exists but has no content — render nothing silently (existing behaviour).
+        if (fileContents === "" && request.selector.kind === "subpath") {
+            return;
+        }
+
+        this.plugin.log("File", fileContents);
         const container = el.createDiv({cls: [Dynbedded.containerClass]});
         // Use the per-block render child as the component so any children
         // registered by MarkdownRenderer are released when the block unloads.
         // Passing the plugin would tie them to the plugin's lifetime → leak.
         await MarkdownRenderer.render(this.app, fileContents, container, ctx.sourcePath, component);
+    }
+
+    // Resolves {{...}} date tokens in the filename and (heading) subpath in place.
+    private resolveDates(request: EmbedRequest) {
+        request.fileName = this.substituteDate(request.fileName);
+        if (request.selector.kind === "subpath") {
+            request.selector.subpath = this.substituteDate(request.selector.subpath);
+        }
+    }
+
+    private substituteDate(value: string): string {
+        const pattern = /{{(.*)}}/;
+        const match = pattern.exec(value);
+        this.plugin.log("DynamicDateMatch", match);
+        if (match === null) {
+            return value;
+        }
+        const {dynamicDateFormat, dynamicDate} = this.getDynamicDate(match);
+        // Todo: figure out how to handle wrong formats correctly.. most formats are valid but create undesired results...
+        if (!window.moment(window.moment.now(), dynamicDateFormat, true).isValid || dynamicDate === null) {
+            throw new DynbeddedError("Not a valid Moment.js Time format: " + dynamicDateFormat);
+        }
+        const result = value.replace(pattern, dynamicDate);
+        this.plugin.log("DynamicValue", result);
+        return result;
     }
 
     private getDynamicDate(dynamicDateMatch: RegExpExecArray) {
@@ -167,24 +119,4 @@ export class DynbeddedProcessor {
         this.plugin.log("DynamicDate", dynamicDate);
         return {dynamicDateFormat, dynamicDate};
     }
-
-    private async getHeaderSectionContent(matchingFile: TFile, position: {start: number, end: number}, fileContents: string) {
-        let text = await this.app.vault.cachedRead(matchingFile)
-        if (!text.endsWith("\n")) {
-            text = text + "\n"
-        }
-        this.plugin.log("Position", position);
-        this.plugin.log("Text", text);
-        fileContents = text.split("\n").slice(position.start + 1, position.end).join("\n");
-        this.plugin.log("Split", fileContents)
-        return fileContents;
-    }
-
-   private splitFileName(fileName: string) {
-        const header = fileName.split("#")[1];
-        fileName = fileName.split("#")[0];
-        this.plugin.log("Header", header);
-        return {header, fileName};
-    }
 }
-
