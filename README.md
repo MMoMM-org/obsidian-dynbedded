@@ -165,6 +165,14 @@ show: title, author
 
 `title` falls back to the note's file name; `author` is read from the note's frontmatter.
 
+## Display options
+
+These are settings (off by default, so existing notes are unchanged):
+
+- **Quote styling** — render embedded (block) content with a coloured left accent and a slight indent, like a quote.
+- **Show source link** — add a small link icon to each embed that opens the original note.
+- **Include heading in section** — when embedding a `#Heading` section, also render the heading line itself. Off keeps the original behaviour of starting below the heading; this does not affect `after:` ranges.
+
 ## Commands
 
 - **Copy reference** — turns the current selection (or cursor) in the active note into a ready-to-paste `dynbedded` block on the clipboard.
@@ -202,6 +210,8 @@ You can style the embedded content with a style sheet. The following styles are 
 - .dynbedded-error = for error messages, by default red. See [styles.css](styles.css)
 - .dynbedded-inline = wraps content rendered with `display: inline`.
 - .dynbedded-attribution = the `show:` source-attribution footer.
+- .dynbedded-quote-style = the optional quote accent + indent (when **Quote styling** is on).
+- .dynbedded-source-link = the optional source-link icon (when **Show source link** is on).
 
 After creating your own style sheet you need to copy it to the .obsidian/snippets folder and enable the style sheet in Appearance / CSS Snippets.
 

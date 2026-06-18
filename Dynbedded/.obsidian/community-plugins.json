@@ -3,6 +3,7 @@
   "obsidian-plugin-base",
   "dataview",
   "obsidian-tasks-plugin",
+  "buttons",
   "obsidian-dynbedded",
-  "buttons"
+  "quoth"
 ]

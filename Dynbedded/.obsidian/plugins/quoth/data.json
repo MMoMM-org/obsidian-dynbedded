@@ -1,0 +1,10 @@
+{
+  "copySettings": {
+    "defaultShow": {
+      "title": false,
+      "author": false
+    },
+    "showMobileButton": false
+  },
+  "index": []
+}

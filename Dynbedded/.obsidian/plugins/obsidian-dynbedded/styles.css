@@ -16,6 +16,34 @@
     font-size: var(--font-ui-small, 0.85em);
     font-style: normal;
 }
+/* Quote styling (opt-in): coloured left accent + indent, like a quote. */
+.dynbedded-quote-style {
+    border-left: 3px solid var(--color-purple, #8a5cf5);
+    padding-left: 0.8em;
+    margin-left: 0.2em;
+}
+/* Source link icon (opt-in): opens the embedded note. */
+.dynbedded-has-link {
+    position: relative;
+}
+.dynbedded-source-link {
+    cursor: pointer;
+    color: var(--text-muted);
+    opacity: 0.55;
+}
+.dynbedded-source-link:hover {
+    opacity: 1;
+    color: var(--text-normal);
+}
+.dynbedded-has-link > .dynbedded-source-link {
+    position: absolute;
+    top: 0.2em;
+    right: 0.4em;
+}
+.dynbedded-source-link-inline {
+    margin-left: 0.3em;
+    vertical-align: baseline;
+}
 /* Center the Ko-Fi Icon */
 .ex-coffee-div {
     text-align: center;
