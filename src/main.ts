@@ -4,6 +4,7 @@ import { DynbeddedBlock } from './DynbeddedBlock';
 import { parseDynbedded, serializeDynbedded } from './parsers/DynbeddedParser';
 import { parseQuoth } from './parsers/QuothParser';
 import { buildReference } from './commands/CopyReference';
+import { convertQuothBlocks } from './commands/ConvertQuoth';
 
 type LogType = typeof console.log;
 
@@ -66,6 +67,20 @@ export default class Dynbedded extends Plugin {
 				const block = serializeDynbedded(buildReference(editor, file));
 				void navigator.clipboard.writeText(block);
 				new Notice('Dynbedded reference copied to clipboard');
+			},
+		});
+
+		this.addCommand({
+			id: 'convert-quoth-blocks',
+			name: 'Convert quoth blocks in current note',
+			editorCallback: (editor: Editor) => {
+				const { result, converted } = convertQuothBlocks(editor.getValue());
+				if (converted === 0) {
+					new Notice('No quoth blocks found in this note');
+					return;
+				}
+				editor.setValue(result);
+				new Notice('Converted ' + converted + ' quoth block' + (converted === 1 ? '' : 's') + ' to dynbedded');
 			},
 		});
 	}
