@@ -1,3 +1,11 @@
+# [1.6.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.5.0...1.6.0) (2026-06-19)
+
+
+### Features
+
+* note per-block override in quoteStyle/showSourceLink/includeHeading settings ([cd09cde](https://github.com/MMoMM-org/obsidian-dynbedded/commit/cd09cdec9566571eff7dac289bcc6b71c70708f2))
+* per-block quoteStyle and showSourceLink overrides ([0942020](https://github.com/MMoMM-org/obsidian-dynbedded/commit/09420202ddb904293259d1b82f501498c097f06b)), closes [#31](https://github.com/MMoMM-org/obsidian-dynbedded/issues/31)
+
 # [1.5.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.4.0...1.5.0) (2026-06-18)
 
 
