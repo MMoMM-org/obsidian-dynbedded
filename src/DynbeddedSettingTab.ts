@@ -37,6 +37,18 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	// Base description plus a "per-block override" note that renders the
+	// code-block key as <code> so it reads as an identifier, not prose.
+	private describeWithOverride(base: string, key: string): DocumentFragment {
+		return createFragment(frag => {
+			frag.appendText(base + ' A block can override this with ');
+			frag.createEl('code', { text: key + ': true' });
+			frag.appendText(' or ');
+			frag.createEl('code', { text: key + ': false' });
+			frag.appendText('.');
+		});
+	}
+
 	display(): void {
 		const { containerEl } = this;
 
@@ -100,7 +112,7 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Quote styling')
-			.setDesc('Show embedded (block) content with a coloured left accent and a slight indent, like a quote. Applies to embedded display only.')
+			.setDesc(this.describeWithOverride('Show embedded (block) content with a coloured left accent and a slight indent, like a quote. Applies to embedded display only.', 'quoteStyle'))
 			.addToggle(toggle =>
 				toggle.setValue(this.plugin.settings.quoteStyle).onChange(async value => {
 					this.plugin.log("Quote Style", value);
@@ -111,7 +123,7 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Show source link')
-			.setDesc('Add a small link icon to each embed that opens the original note.')
+			.setDesc(this.describeWithOverride('Add a small link icon to each embed that opens the original note.', 'showSourceLink'))
 			.addToggle(toggle =>
 				toggle.setValue(this.plugin.settings.showSourceLink).onChange(async value => {
 					this.plugin.log("Show Source Link", value);
@@ -122,7 +134,7 @@ export class DynbeddedSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Include heading in section')
-			.setDesc('When embedding a "#heading" section, also render the heading line itself. Off keeps the original behaviour of starting below the heading. Does not affect "after:" ranges.')
+			.setDesc(this.describeWithOverride('When embedding a "#heading" section, also render the heading line itself. Off keeps the original behaviour of starting below the heading. Does not affect "after:" ranges.', 'includeHeading'))
 			.addToggle(toggle =>
 				toggle.setValue(this.plugin.settings.includeHeading).onChange(async value => {
 					this.plugin.log("Include Heading", value);
