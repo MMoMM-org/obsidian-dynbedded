@@ -47,6 +47,8 @@ display: inline        # embedded (default) | inline
 show: title, author    # attribution footer
 includeHeading: true   # render the heading line in a #header section (overrides setting default)
 headerHierarchy: true  # section ends at equal/higher heading only
+quoteStyle: true       # quote-style accent + indent (true|false, overrides setting default)
+showSourceLink: true   # link icon to the source note (true|false, overrides setting default)
 ```
 ````
 
