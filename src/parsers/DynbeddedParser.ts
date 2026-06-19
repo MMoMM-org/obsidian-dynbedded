@@ -20,6 +20,8 @@ const TO = /^to:\s*"(.*)"\s*$/m;
 const DISPLAY = /^display:\s*(embedded|inline)\s*$/m;
 const SHOW = /^show:\s*(.*)$/m;
 const INCLUDE_HEADING = /^includeHeading:\s*(true|false)\s*$/m;
+const QUOTE_STYLE = /^quoteStyle:\s*(true|false)\s*$/m;
+const SHOW_SOURCE_LINK = /^showSourceLink:\s*(true|false)\s*$/m;
 
 export function parseDynbedded(source: string, defaults: ParserDefaults = DEFAULT_PARSER_DEFAULTS): EmbedRequest {
     const linkMatch = FILE_LINK.exec(source);
@@ -38,6 +40,8 @@ export function parseDynbedded(source: string, defaults: ParserDefaults = DEFAUL
     const displayMatch = DISPLAY.exec(source);
     const showMatch = SHOW.exec(source);
     const includeHeadingMatch = INCLUDE_HEADING.exec(source);
+    const quoteStyleMatch = QUOTE_STYLE.exec(source);
+    const showSourceLinkMatch = SHOW_SOURCE_LINK.exec(source);
 
     return {
         fileName: target,
@@ -46,6 +50,8 @@ export function parseDynbedded(source: string, defaults: ParserDefaults = DEFAUL
         attribution: showMatch ? parseShow(showMatch[1]) : [],
         headerHierarchy: HEADER_HIERARCHY.test(source),
         includeHeading: includeHeadingMatch ? includeHeadingMatch[1] === 'true' : defaults.includeHeading,
+        quoteStyle: quoteStyleMatch ? quoteStyleMatch[1] === 'true' : defaults.quoteStyle,
+        showSourceLink: showSourceLinkMatch ? showSourceLinkMatch[1] === 'true' : defaults.showSourceLink,
         join: DEFAULT_JOIN,
     };
 }
@@ -65,6 +71,12 @@ export function serializeDynbedded(request: EmbedRequest): string {
 
     if (request.selector.kind === 'subpath' && request.includeHeading) {
         lines.push('includeHeading: true');
+    }
+    if (request.quoteStyle) {
+        lines.push('quoteStyle: true');
+    }
+    if (request.showSourceLink) {
+        lines.push('showSourceLink: true');
     }
     if (request.display === 'inline') {
         lines.push('display: inline');

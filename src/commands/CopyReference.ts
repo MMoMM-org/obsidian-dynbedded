@@ -44,6 +44,8 @@ function baseRequest(fileName: string, selector: Selector): EmbedRequest {
         attribution: [],
         headerHierarchy: false,
         includeHeading: false,
+        quoteStyle: false,
+        showSourceLink: false,
         join: ' ... ',
     };
 }

@@ -21,6 +21,8 @@ export interface EmbedRequest {
     attribution: ('author' | 'title')[];         // empty = no attribution footer
     headerHierarchy: boolean;                    // #2 flag, only meaningful for heading selectors
     includeHeading: boolean;                     // render the heading line itself in a heading section
+    quoteStyle: boolean;                         // coloured left accent + indent (embedded display only)
+    showSourceLink: boolean;                     // link icon that opens the original note
     join: string;                                // separator for multi-range embeds
 }
 
@@ -30,11 +32,15 @@ export const DEFAULT_JOIN = ' ... ';             // Quoth default
 export interface ParserDefaults {
     display: DisplayMode;
     includeHeading: boolean;
+    quoteStyle: boolean;
+    showSourceLink: boolean;
 }
 
 export const DEFAULT_PARSER_DEFAULTS: ParserDefaults = {
     display: 'embedded',
     includeHeading: false,
+    quoteStyle: false,
+    showSourceLink: false,
 };
 
 // A front-end parser: code-block source + settings defaults → EmbedRequest.

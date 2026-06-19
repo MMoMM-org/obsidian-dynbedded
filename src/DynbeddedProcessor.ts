@@ -28,6 +28,8 @@ export class DynbeddedProcessor {
             request = parse(source, {
                 display: this.plugin.settings.defaultDisplay,
                 includeHeading: this.plugin.settings.includeHeading,
+                quoteStyle: this.plugin.settings.quoteStyle,
+                showSourceLink: this.plugin.settings.showSourceLink,
             });
             this.resolveDates(request);
         } catch (error) {
@@ -76,12 +78,12 @@ export class DynbeddedProcessor {
         } else {
             contentEl = el.createDiv({cls: [Dynbedded.containerClass]});
             await MarkdownRenderer.render(this.app, fileContents, contentEl, ctx.sourcePath, component);
-            if (this.plugin.settings.quoteStyle) {
+            if (request.quoteStyle) {
                 contentEl.addClass("dynbedded-quote-style");
             }
         }
 
-        if (this.plugin.settings.showSourceLink) {
+        if (request.showSourceLink) {
             this.renderSourceLink(contentEl, matchingFile, component, request.display);
         }
 

@@ -54,8 +54,8 @@ export function parseQuoth(source: string, defaults: ParserDefaults = DEFAULT_PA
             ? { kind: 'subpath', subpath }
             : { kind: 'whole' };
 
-    // Quoth has no includeHeading key — fall back to the Dynbedded default.
-    return { fileName: target, selector, display, attribution, headerHierarchy: false, includeHeading: defaults.includeHeading, join };
+    // Quoth has no includeHeading / quoteStyle / showSourceLink keys — fall back to the Dynbedded defaults.
+    return { fileName: target, selector, display, attribution, headerHierarchy: false, includeHeading: defaults.includeHeading, quoteStyle: defaults.quoteStyle, showSourceLink: defaults.showSourceLink, join };
 }
 
 function parseRanges(value: string): Selector {
