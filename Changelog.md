@@ -1,3 +1,9 @@
+## [1.6.1](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.6.0...1.6.1) (2026-07-01)
+
+### Bug Fixes
+
+* **release:** conventionalcommits preset so semantic-release keeps ! commits ([a7a0a30](https://github.com/MMoMM-org/obsidian-dynbedded/commit/a7a0a308b3aad3df32ef9800c83fd4fd1ad0ee86))
+
 # [1.6.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.5.0...1.6.0) (2026-06-19)
 
 
