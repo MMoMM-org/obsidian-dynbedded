@@ -27,6 +27,14 @@
 	"browserslist": [
 		"chrome 114"
 	],
+	"overrides": {
+		"@actions/http-client": {
+			"undici": "^6.27.0"
+		},
+		"node-gyp": {
+			"undici": "^6.27.0"
+		}
+	},
 	"keywords": [],
 	"license": "GPLv3",
 	"main": "src/main.js",
