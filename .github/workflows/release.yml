@@ -35,6 +35,23 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
 
+      # Catch the silent-drop class where a release-worthy feat/fix commit
+      # produces no release (e.g. commit-analyzer left on the angular preset,
+      # whose headerPattern has no '!' and drops feat!:/fix!: commits). If a
+      # release was cut, the new tag is the most recent reachable one and the
+      # range below is empty of feat/fix; if not, the dropped commit is still
+      # in range → fail.
+      - name: Guard against silently-dropped releases
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          RANGE="${LAST_TAG:+$LAST_TAG..}HEAD"
+          if git log "$RANGE" --format='%s' | grep -qE '^(feat|fix)(\(.+\))?!?:'; then
+              echo "::error::Release-worthy feat/fix commit(s) present since ${LAST_TAG:-<root>} but no release was cut — likely a commit-analyzer preset/config drop (angular preset ignores '!')."
+              git log "$RANGE" --format='  %s' | grep -E '^  (feat|fix)(\(.+\))?!?:'
+              exit 1
+          fi
+          echo "Release guard OK (no un-released feat/fix commits since ${LAST_TAG:-<root>})."
+
       - name: Attest release assets
         # Only runs when semantic-release actually built artifacts
         # (no-op commits like docs/chore won't populate build/).
