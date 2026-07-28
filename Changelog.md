@@ -1,3 +1,9 @@
+## [1.6.2](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.6.1...1.6.2) (2026-07-28)
+
+### Bug Fixes
+
+* make the target note reachable from an error message ([b7de3f8](https://github.com/MMoMM-org/obsidian-dynbedded/commit/b7de3f8cf0e3cbc61ea7b02b49d5120379638b16)), closes [#39](https://github.com/MMoMM-org/obsidian-dynbedded/issues/39)
+
 ## [1.6.1](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.6.0...1.6.1) (2026-07-01)
 
 ### Bug Fixes
