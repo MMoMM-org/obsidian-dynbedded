@@ -5,6 +5,7 @@ import { parseDynbedded, serializeDynbedded } from './parsers/DynbeddedParser';
 import { parseQuoth } from './parsers/QuothParser';
 import { buildReference } from './commands/CopyReference';
 import { convertQuothBlocks } from './commands/ConvertQuoth';
+import { ErrorLink, renderError } from './ErrorDisplay';
 
 type LogType = typeof console.log;
 
@@ -23,9 +24,9 @@ export default class Dynbedded extends Plugin {
 	static containerClass = "dynbedded";
 	static errorClass = "dynbedded-error";
 
-	static displayError = (parent: HTMLElement, text: string) => {
+	static displayError = (parent: HTMLElement, text: string, link?: ErrorLink) => {
 		console.error("Dynbedded-Error: ", text);
-		parent.createEl("pre", { text: "Dynbedded: Error: " + text, cls: [Dynbedded.containerClass, Dynbedded.errorClass] });
+		renderError(parent, text, link);
 	}
 
 	async onload() {

@@ -1,6 +1,7 @@
-import { App, Component, MarkdownPostProcessorContext, MarkdownRenderer, setIcon, TFile } from "obsidian";
+import { App, Component, MarkdownPostProcessorContext, MarkdownRenderer, TFile } from "obsidian";
 import Dynbedded from "./main";
 import { Anchor, DynbeddedError, EmbedRequest, ParseFn, Selector } from "./EmbedRequest";
+import { createOpenNoteIcon, ErrorLink } from "./ErrorDisplay";
 import { SelectorResolver } from "./SelectorResolver";
 
 export class DynbeddedProcessor {
@@ -14,11 +15,11 @@ export class DynbeddedProcessor {
         this.resolver = new SelectorResolver(app, plugin);
     }
 
-    private showError(el: HTMLElement, message: string) {
+    private showError(el: HTMLElement, message: string, link?: ErrorLink) {
         if (this.plugin.settings.silentMode) {
             this.plugin.log("Suppressed error:", message);
         } else {
-            Dynbedded.displayError(el, message);
+            Dynbedded.displayError(el, message, link);
         }
     }
 
@@ -41,14 +42,23 @@ export class DynbeddedProcessor {
         }
         this.plugin.log("EmbedRequest", request);
 
+        // Lets an error message link to (and open) the note the block points at (#39).
+        const errorLink = (file: TFile | null): ErrorLink => ({
+            app: this.app,
+            component,
+            sourcePath: ctx.sourcePath,
+            fileName: request.fileName,
+            file,
+        });
+
         const matchingFile = this.app.metadataCache.getFirstLinkpathDest(request.fileName, '');
         this.plugin.log("MatchingFile", matchingFile);
         if (!matchingFile) {
-            this.showError(el, "File link not found: [[" + request.fileName + "]]");
+            this.showError(el, "File link not found: [[" + request.fileName + "]]", errorLink(null));
             return;
         }
         if (matchingFile.extension !== "md") {
-            this.showError(el, "Bad file extension found, expected markdown: " + matchingFile.path);
+            this.showError(el, "Bad file extension found, expected markdown: " + matchingFile.path, errorLink(matchingFile));
             return;
         }
 
@@ -57,7 +67,7 @@ export class DynbeddedProcessor {
             fileContents = await this.resolver.resolve(matchingFile, request);
         } catch (error) {
             if (error instanceof DynbeddedError) {
-                this.showError(el, error.message);
+                this.showError(el, error.message, errorLink(matchingFile));
                 return;
             }
             throw error;
@@ -95,24 +105,12 @@ export class DynbeddedProcessor {
     // Optional link icon that opens the embedded note (#b). For embedded display it
     // sits in the top-right corner; for inline it trails the content.
     private renderSourceLink(contentEl: HTMLElement, file: TFile, component: Component, display: 'embedded' | 'inline') {
-        const link = contentEl.createSpan({
-            cls: "dynbedded-source-link",
-            attr: { "aria-label": "Open " + file.basename, role: "link", tabindex: "0" },
-        });
-        setIcon(link, "link");
+        const link = createOpenNoteIcon(contentEl, this.app, file, component);
         if (display === "embedded") {
             contentEl.addClass("dynbedded-has-link");
         } else {
             link.addClass("dynbedded-source-link-inline");
         }
-        const open = () => { void this.app.workspace.getLeaf(false).openFile(file); };
-        component.registerDomEvent(link, "click", open);
-        component.registerDomEvent(link, "keydown", (event: KeyboardEvent) => {
-            if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                open();
-            }
-        });
     }
 
     // Renders a source-attribution footer (#28). Title falls back to the file

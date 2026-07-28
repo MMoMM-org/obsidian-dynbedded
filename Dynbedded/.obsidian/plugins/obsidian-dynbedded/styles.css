@@ -2,6 +2,29 @@
 .dynbedded-error {
     color: red;
 }
+/* Clickable target note inside an error message, so a failed embed can still be
+   opened. Underlined via border-bottom rather than the text-decoration shorthand
+   (see CLAUDE.md — the shorthand is only partially supported on Obsidian's
+   Chromium floor and trips the stylelint browser-compat rule). */
+.dynbedded-error-link {
+    color: inherit;
+    cursor: pointer;
+    border-bottom: 1px solid currentcolor;
+}
+/* Target note does not exist — muted, but still clickable (creates the note). */
+.dynbedded-error-link.is-unresolved {
+    opacity: 0.6;
+}
+/* The link icon sits inside the red box, so it inherits the error colour instead
+   of the muted grey it uses on the success path. */
+.dynbedded-error .dynbedded-source-link {
+    color: inherit;
+    opacity: 0.75;
+}
+.dynbedded-error .dynbedded-source-link:hover {
+    color: inherit;
+    opacity: 1;
+}
 /* Inline display mode (display: inline): flow the embedded content as one run
    instead of a block. The processor unwraps a single top-level paragraph into
    this span; any remaining block children fall back to their default layout. */

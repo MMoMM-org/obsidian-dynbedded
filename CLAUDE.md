@@ -28,6 +28,7 @@ The test vault is `Dynbedded/` in the repo root. `npm run dev` writes directly i
 | `src/parsers/shared.ts` | `splitTopLevel` / `parseShow` shared by both parsers. |
 | `src/SelectorResolver.ts` | `Selector` → content slice (whole / heading / `#^block` / after / between / multi). |
 | `src/DynbeddedProcessor.ts` | Orchestrator: parse → date-substitute → resolve file → extract → render (block/inline) → attribution. |
+| `src/ErrorDisplay.ts` | Error-box rendering: turns the `[[Target]]` in a message into a working link and appends the shared open-note icon (#39). Owns `createOpenNoteIcon`, reused by the success-path source link. |
 | `src/DynbeddedSettingTab.ts` | Settings UI (silent mode, auto-refresh, default display, render quoth blocks, debug logging). |
 | `src/commands/CopyReference.ts` | Builds an `EmbedRequest` from the editor selection/cursor (#29). |
 | `src/commands/ConvertQuoth.ts` | Rewrites `quoth` blocks → `dynbedded` in one note's text (#30, reduced). |
