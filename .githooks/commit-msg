@@ -1,0 +1,173 @@
+#!/bin/bash
+# tcs-git-helpers: v2.2.12
+# tcs-git-helpers-bundle: h3
+# commit-msg — tcs-git-helpers repo-side Conventional Commits enforcement hook
+#
+# Validates commit message subject in two steps:
+#   1. Length check (TCS_MAX_SUBJECT_LENGTH, default 90)
+#   2. Conventional Commits format check (if TCS_ENABLE_CONVENTIONAL_CHECK=1)
+#
+# Exemptions (skip format check only; length still applies):
+#   - Merge commits: subject begins "Merge branch " / "Merge pull request "
+#   - MERGE_HEAD file present in GIT_DIR
+#   - Subject contains literal "[skip-format-check]"
+#
+# Configuration (via .githooks/.config):
+#   TCS_ALLOWED_COMMIT_TYPES      — space-separated; default "feat fix docs style refactor test chore perf revert build ci"
+#   TCS_REQUIRE_SCOPE             — 0|1; default 0
+#   TCS_MAX_SUBJECT_LENGTH        — integer 1-9999; default 90
+#   TCS_ENABLE_CONVENTIONAL_CHECK — 0|1; default 1
+#
+# Install: git config core.hooksPath .githooks
+#
+# Spec refs:
+#   - PRD M5/AC1-AC4 — Conventional Commits enforcement
+#   - SDD §Repo-side .githooks/ Templates — commit-msg
+#   - PRD M11/AC1 — standalone mode: works without any external env vars
+#   - SDD CON-1 — plugin env vars must not be required at git-hook time
+
+# Exit immediately on unhandled errors; pipefail catches pipeline failures.
+set -eo pipefail
+
+# ---------------------------------------------------------------------------
+# Source sibling lib-bundle.sh (self-contained install; no env-var deps).
+# ---------------------------------------------------------------------------
+
+_LIB="$(dirname "$0")/lib-bundle.sh"
+if [ -f "$_LIB" ]; then
+  # shellcheck source=lib-bundle.sh
+  # shellcheck disable=SC1091
+  . "$_LIB"
+fi
+
+# ---------------------------------------------------------------------------
+# Source sibling lib-config-parser.sh and load .githooks/.config overrides.
+# Soft-source: hook keeps working if the parser file is missing.
+# ---------------------------------------------------------------------------
+_PARSER="$(dirname "$0")/lib-config-parser.sh"
+if [ -f "$_PARSER" ]; then
+  # shellcheck source=lib-config-parser.sh
+  # shellcheck disable=SC1091
+  . "$_PARSER"
+  _repo_top="$(git rev-parse --show-toplevel 2>/dev/null)" || _repo_top=""
+  parse_tcs_config "${_repo_top}/.githooks/.config" 2>/dev/null || true
+fi
+
+# ---------------------------------------------------------------------------
+# Defaults (applied when config file is absent or key is unset)
+# ---------------------------------------------------------------------------
+TCS_ALLOWED_COMMIT_TYPES="${TCS_ALLOWED_COMMIT_TYPES:-feat fix docs style refactor test chore perf revert build ci}"
+TCS_REQUIRE_SCOPE="${TCS_REQUIRE_SCOPE:-0}"
+TCS_MAX_SUBJECT_LENGTH="${TCS_MAX_SUBJECT_LENGTH:-90}"
+TCS_ENABLE_CONVENTIONAL_CHECK="${TCS_ENABLE_CONVENTIONAL_CHECK:-1}"
+
+# ---------------------------------------------------------------------------
+# Read commit message
+# ---------------------------------------------------------------------------
+MSG_FILE="$1"
+
+# Read first line (subject) from the message file.
+# IFS= + read -r preserves content exactly; we strip trailing whitespace manually.
+SUBJECT=""
+if [ -r "$MSG_FILE" ]; then
+  IFS= read -r SUBJECT < "$MSG_FILE" || true
+fi
+
+# Strip trailing whitespace (bash 3.2 compatible loop).
+while [ -n "$SUBJECT" ] && [ "${SUBJECT%[[:space:]]}" != "$SUBJECT" ]; do
+  SUBJECT="${SUBJECT%[[:space:]]}"
+done
+
+# ---------------------------------------------------------------------------
+# STEP 1: Reject empty subject
+# ---------------------------------------------------------------------------
+if [ -z "$SUBJECT" ]; then
+  printf '\n' >&2
+  printf '  [commit-msg] Commit message subject cannot be empty.\n' >&2
+  printf '\n' >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# STEP 2: Length check (explicit, NOT ^.{m,n}$ regex — bash 3.2 CON-2)
+# ---------------------------------------------------------------------------
+if [ "${#SUBJECT}" -gt "$TCS_MAX_SUBJECT_LENGTH" ]; then
+  printf '\n' >&2
+  printf '  [commit-msg] Subject too long: %d characters (max %d).\n' \
+    "${#SUBJECT}" "$TCS_MAX_SUBJECT_LENGTH" >&2
+  printf '    Move details to the commit body (leave a blank line after subject).\n' >&2
+  printf '\n' >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Format check: skip if disabled
+# ---------------------------------------------------------------------------
+if [ "$TCS_ENABLE_CONVENTIONAL_CHECK" != "1" ]; then
+  exit 0
+fi
+
+# ---------------------------------------------------------------------------
+# STEP 3: Merge-commit detection (AC3)
+#   - MERGE_HEAD file present in GIT_DIR
+#   - Subject begins "Merge branch " or "Merge pull request "
+# ---------------------------------------------------------------------------
+GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || printf '')"
+
+if [ -n "$GIT_DIR" ] && [ -f "$GIT_DIR/MERGE_HEAD" ]; then
+  exit 0
+fi
+
+case "$SUBJECT" in
+  "Merge branch "*|"Merge pull request "*)
+    exit 0
+    ;;
+esac
+
+# ---------------------------------------------------------------------------
+# STEP 4: [skip-format-check] override (AC4)
+#   Literal substring match via case — brackets are special in regex so we
+#   use a glob pattern instead.
+# ---------------------------------------------------------------------------
+case "$SUBJECT" in
+  *"[skip-format-check]"*)
+    exit 0
+    ;;
+esac
+
+# ---------------------------------------------------------------------------
+# STEP 5: Conventional Commits format enforcement (AC1, AC2)
+#   Build regex dynamically from TCS_ALLOWED_COMMIT_TYPES.
+#   When TCS_REQUIRE_SCOPE=1, scope group becomes mandatory.
+# ---------------------------------------------------------------------------
+
+# Convert space-separated type list → pipe-alternation: "feat fix" → "feat|fix"
+types_alt="$(printf '%s' "$TCS_ALLOWED_COMMIT_TYPES" | tr ' ' '|')"
+
+if [ "$TCS_REQUIRE_SCOPE" = "1" ]; then
+  # Scope is mandatory: (scope) group present, no ?
+  re="^(${types_alt})(\([a-z0-9._-]+\))!?: .+"
+else
+  # Scope is optional: (scope)? group
+  re="^(${types_alt})(\([a-z0-9._-]+\))?!?: .+"
+fi
+
+if [[ "$SUBJECT" =~ $re ]]; then
+  exit 0
+fi
+
+# Subject failed the format check. Produce a helpful error.
+printf '\n' >&2
+if [ "$TCS_REQUIRE_SCOPE" = "1" ]; then
+  printf '  [commit-msg] Commit subject does not match Conventional Commits format (scope required).\n' >&2
+  printf '    Expected: <type>(<scope>)!?: <description>\n' >&2
+else
+  printf '  [commit-msg] Commit subject does not match Conventional Commits format.\n' >&2
+  printf '    Expected: <type>(<scope>)?!?: <description>\n' >&2
+fi
+printf '    Allowed types: %s\n' "$TCS_ALLOWED_COMMIT_TYPES" >&2
+printf '    Type not in allowlist or missing/malformed scope.\n' >&2
+printf '    To bypass: include [skip-format-check] in the subject.\n' >&2
+printf '    See: references/conventional-commits.md\n' >&2
+printf '\n' >&2
+exit 1

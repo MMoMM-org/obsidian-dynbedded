@@ -14,7 +14,9 @@ Sourced from [GitHub Issues](https://github.com/MMoMM-org/obsidian-dynbedded/iss
 
 ## Pending Confirmation
 
-*(none)*
+| Task | Commit |
+|------|--------|
+| #39 — Error messages: `[[target note]]` is now a working link and the open-note icon is shown, so a failed embed can be opened for inspection. Unresolved targets render muted but stay clickable (creates the note). New `src/ErrorDisplay.ts`; `createOpenNoteIcon` shared with the success-path source link. | *pending* |
 
 ---
 

@@ -1,0 +1,13 @@
+# tcs-git-helpers: v2.2.12
+#
+# One pattern per line; anchored to repo root; glob style.
+#
+# Patterns listed here are excluded from pre-commit hook checks
+# (linting, format, autofixes). Anchored to repo root with ** for
+# nested directories.
+#
+# Examples:
+# .env.development
+# tests/fixtures/*.env
+# build/temp/*
+# node_modules/

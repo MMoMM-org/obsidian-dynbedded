@@ -182,6 +182,15 @@ includeHeading: true
 ```
 ~~~
 
+## Error messages
+
+When a block cannot be resolved — a missing header being the common case — the error message links to the note the block points at, so you can open it and check the actual headings without leaving the page:
+
+- the `[[Target note]]` in the message is clickable (Ctrl/Cmd-click opens it in a new tab), and a link icon follows the message;
+- if the target note does not exist at all, the link is shown muted and clicking it creates the note, just like a normal unresolved `[[link]]` in Obsidian;
+- the icon is always shown here — it does not depend on the **Show source link** setting, because in an error there is no embedded content to click;
+- with **Enable silent mode** on, nothing is rendered at all, as before.
+
 ## Commands
 
 - **Copy reference** — turns the current selection (or cursor) in the active note into a ready-to-paste `dynbedded` block on the clipboard.
@@ -221,6 +230,7 @@ You can style the embedded content with a style sheet. The following styles are 
 
 - .dynbedded = for the normal display. There is no default value for this at the moment. (This styling needs to be in front of the error Styling if you restyle both!)
 - .dynbedded-error = for error messages, by default red. See [styles.css](styles.css)
+- .dynbedded-error-link = the clickable target-note link inside an error message; it also carries `.is-unresolved` when the target note does not exist.
 - .dynbedded-inline = wraps content rendered with `display: inline`.
 - .dynbedded-attribution = the `show:` source-attribution footer.
 - .dynbedded-quote-style = the optional quote accent + indent (when **Quote styling** is on).

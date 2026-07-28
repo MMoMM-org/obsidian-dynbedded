@@ -1,0 +1,62 @@
+# tcs-git-helpers: v2.2.12
+
+# .config — Override default behaviors of .githooks/* hooks
+#
+# This file configures pre-commit, pre-push, commit-msg, and post-merge hooks.
+# All settings below are commented out by default (hooks use built-in defaults).
+# Uncomment and customize any key to override its default behavior.
+#
+# Installation:
+#   1. Copy this file to .githooks/.config
+#   2. Edit .githooks/.config with your customizations
+#   3. Commit or .gitignore depending on your team policy
+
+# TCS_PROTECTED_BRANCHES
+# Pipe-separated list of branch names that cannot be force-pushed or amended on protected branch.
+# Default: "main|master|production|release"
+# Used by: pre-commit, pre-push
+# Example:
+# TCS_PROTECTED_BRANCHES=main|master|develop
+
+# TCS_HOOK_EXCLUDE_PATHS_FILE
+# Relative path to a file listing glob patterns (one per line) of paths excluded from hook checks.
+# Anchored to repo root. Default: ".githooks/exclude-paths"
+# Patterns use shell glob syntax (*, ?, [abc]).
+# Used by: pre-commit (for linting/format checks)
+# Example:
+# TCS_HOOK_EXCLUDE_PATHS_FILE=.githooks/exclude-paths
+
+# TCS_ALLOWED_COMMIT_TYPES
+# Space-separated list of allowed commit message types (conventional commits scope).
+# Default: "feat fix docs style refactor test chore perf revert build ci"
+# Used by: commit-msg (if TCS_ENABLE_CONVENTIONAL_CHECK is 1)
+# Example:
+# TCS_ALLOWED_COMMIT_TYPES=feat fix docs style refactor test chore perf revert build ci
+
+# TCS_REQUIRE_SCOPE
+# Enforce scope in conventional commit format (e.g., "feat(auth): ...").
+# 0 = scope optional (default); 1 = scope required.
+# Used by: commit-msg (if TCS_ENABLE_CONVENTIONAL_CHECK is 1)
+# Example:
+# TCS_REQUIRE_SCOPE=0
+
+# TCS_MAX_SUBJECT_LENGTH
+# Maximum character length of commit subject line (first line).
+# Integer 1–9999. Default: 90
+# Used by: commit-msg (if TCS_ENABLE_CONVENTIONAL_CHECK is 1)
+# Example:
+# TCS_MAX_SUBJECT_LENGTH=90
+
+# TCS_ENABLE_CONVENTIONAL_CHECK
+# Enable conventional commit format validation (type(scope)?: subject).
+# 0 = disabled; 1 = enabled (default).
+# Used by: commit-msg
+# Example:
+# TCS_ENABLE_CONVENTIONAL_CHECK=1
+
+# TCS_ENABLE_PR_PUSH_CHECK
+# Enable checks for pushes to PR branches (e.g., pull/123/head).
+# 0 = disabled; 1 = enabled (default).
+# Used by: pre-push
+# Example:
+# TCS_ENABLE_PR_PUSH_CHECK=1
