@@ -52,7 +52,6 @@ export default class Dynbedded extends Plugin {
 				this.log("Registered quoth code block rendering");
 			} catch (error) {
 				console.error("Dynbedded: could not register quoth rendering", error);
-				// eslint-disable-next-line obsidianmd/ui/sentence-case -- "Quoth" is a proper noun (the plugin's name)
 				new Notice('Dynbedded: could not render quoth blocks — is the Quoth plugin still installed? Uninstall it and reload.');
 			}
 		}

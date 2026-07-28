@@ -19,6 +19,14 @@ export default tseslint.config(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		rules: {
+			// "Dynbedded" and "Quoth" are proper nouns (plugin names); the review
+			// process disallows eslint-disable comments for this rule, so they're
+			// registered via the rule's own ignoreWords option instead.
+			"obsidianmd/ui/sentence-case": ["error", { enforceCamelCaseLower: true, ignoreWords: ["Dynbedded", "Quoth"] }],
+		},
+	},
 	globalIgnores([
 		"node_modules",
 		"build",
