@@ -1,3 +1,9 @@
+## [1.6.3](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.6.2...1.6.3) (2026-07-28)
+
+### Bug Fixes
+
+* replace disallowed eslint-disable with sentence-case ignoreWords ([ecaec85](https://github.com/MMoMM-org/obsidian-dynbedded/commit/ecaec8588c2833a712fc018553d32b8b8f606476))
+
 ## [1.6.2](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.6.1...1.6.2) (2026-07-28)
 
 ### Bug Fixes
