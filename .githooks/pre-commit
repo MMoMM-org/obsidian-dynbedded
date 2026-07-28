@@ -1,0 +1,183 @@
+#!/bin/bash
+# tcs-git-helpers: v2.2.12
+# tcs-git-helpers-bundle: h3
+# pre-commit — tcs-git-helpers repo-side safety hook
+#
+# Blocks:
+#   1. Direct commits to protected branches (default: main|master|production|release)
+#   2. Staged files that look like secrets (env files, credentials, keys, SSH keys)
+#
+# Configuration (via .githooks/.config):
+#   TCS_PROTECTED_BRANCHES      — |-separated branch names; default main|master|production|release
+#   TCS_HOOK_EXCLUDE_PATHS_FILE — path to exclusion list; default .githooks/exclude-paths
+#
+# Install: git config core.hooksPath .githooks
+#
+# Spec refs:
+#   - SDD §Repo-side .githooks/ Templates — pre-commit (ADR-12, M5/AC1, M11/AC1)
+#   - ADR-12 — default protected branches
+#   - M11   — standalone mode: works without any external env vars
+#   - SDD CON-1 — plugin env vars must not be required at git-hook time
+#
+# Note on amend detection (deviation D1):
+#   Empirical testing with git 2.50.1 confirms that pre-commit hooks have NO
+#   reliable signal for --amend: GIT_REFLOG_ACTION is empty, ORIG_HEAD is absent
+#   at pre-commit time, and ps-tree walking fails (re-exec'd subprocess). Amend
+#   exemption is handled at the Claude-side block-bad-git-ops.sh layer (T2.x),
+#   which sees the literal command string. This hook is intentionally strict:
+#   it blocks ALL commits to protected branches (defense-in-depth).
+
+# Exit immediately on unhandled errors; pipefail catches pipeline failures.
+set -eo pipefail
+
+# ---------------------------------------------------------------------------
+# Source sibling lib-bundle.sh (self-contained install; no env-var deps).
+# lib-bundle.sh provides _emit_skip and other shared helpers.
+# If missing, hook still works — lib functions are only used for degraded paths.
+# ---------------------------------------------------------------------------
+
+_LIB="$(dirname "$0")/lib-bundle.sh"
+if [ -f "$_LIB" ]; then
+  # shellcheck source=lib-bundle.sh
+  # shellcheck disable=SC1091
+  . "$_LIB"
+fi
+
+# ---------------------------------------------------------------------------
+# Source sibling lib-config-parser.sh and load .githooks/.config overrides.
+# Soft-source: hook keeps working if the parser file is missing.
+# ---------------------------------------------------------------------------
+_PARSER="$(dirname "$0")/lib-config-parser.sh"
+if [ -f "$_PARSER" ]; then
+  # shellcheck source=lib-config-parser.sh
+  # shellcheck disable=SC1091
+  . "$_PARSER"
+  _repo_top="$(git rev-parse --show-toplevel 2>/dev/null)" || _repo_top=""
+  parse_tcs_config "${_repo_top}/.githooks/.config" 2>/dev/null || true
+fi
+
+# ---------------------------------------------------------------------------
+# Defaults (applied when config file is absent or key is unset)
+# ---------------------------------------------------------------------------
+TCS_PROTECTED_BRANCHES="${TCS_PROTECTED_BRANCHES:-main|master|production|release}"
+TCS_HOOK_EXCLUDE_PATHS_FILE="${TCS_HOOK_EXCLUDE_PATHS_FILE:-.githooks/exclude-paths}"
+
+# ---------------------------------------------------------------------------
+# Gather context
+# ---------------------------------------------------------------------------
+BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || printf '')"
+
+STAGED="$(git diff --cached --name-only 2>/dev/null || true)"
+
+# ---------------------------------------------------------------------------
+# 1. Protected-branch block
+# ---------------------------------------------------------------------------
+# Build a pattern that matches the full branch name against |-separated list.
+# We convert the |-separated list into a case pattern (bash 3.2 compatible).
+# Strategy: iterate over each protected branch and check for exact match.
+_is_protected_branch() {
+  local branch="$1" list="$2"
+  # Split on | manually (IFS-based split not safe on bash 3.2 with arbitrary chars).
+  local item rest="$list"
+  while [ -n "$rest" ]; do
+    case "$rest" in
+      *\|*)
+        item="${rest%%|*}"
+        rest="${rest#*|}"
+        ;;
+      *)
+        item="$rest"
+        rest=""
+        ;;
+    esac
+    if [ "$branch" = "$item" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+if _is_protected_branch "$BRANCH" "$TCS_PROTECTED_BRANCHES"; then
+  printf '\n' >&2
+  printf '  ✗ Direct commit to '\''%s'\'' is not allowed.\n' "$BRANCH" >&2
+  printf '    Create a feature branch first:\n' >&2
+  printf '      git checkout -b feat/your-change\n' >&2
+  printf '    To bypass at the Claude-side layer (when applicable), use CLAUDE_ALLOW_<RULE>=1.\n' >&2
+  printf '    The repo-side hook is intentionally strict and blocks all protected-branch commits.\n' >&2
+  printf '\n' >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# 2. Secret-file detection
+# ---------------------------------------------------------------------------
+# Nothing staged → nothing to check.
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+# Load exclusion list (one glob per line, anchored to repo root).
+# Lines starting with # or empty lines are skipped.
+_is_excluded() {
+  local file="$1"
+  local excl_file="$TCS_HOOK_EXCLUDE_PATHS_FILE"
+
+  [ -r "$excl_file" ] || return 1
+
+  local raw_line excl_line
+  while IFS= read -r raw_line || [ -n "$raw_line" ]; do
+    # Strip trailing CR (CRLF tolerance).
+    excl_line="${raw_line%$'\r'}"
+    # Skip comments and empty lines.
+    case "$excl_line" in
+      \#*|'') continue ;;
+    esac
+    # Use case-glob match against the file path (anchored to repo root).
+    # shellcheck disable=SC2254  # glob expansion is intentional here
+    case "$file" in
+      $excl_line) return 0 ;;
+    esac
+  done < "$excl_file"
+  return 1
+}
+
+FOUND=0
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+
+  # If the file is in the exclusion list, skip secret check for it.
+  if _is_excluded "$file"; then
+    continue
+  fi
+
+  case "$file" in
+    .env|.env.*|*.env)
+      printf '  ✗ Staged file looks like an env file: %s\n' "$file" >&2
+      FOUND=1
+      ;;
+    credentials.json|.credentials.json|*.credentials.json)
+      printf '  ✗ Staged file looks like credentials: %s\n' "$file" >&2
+      FOUND=1
+      ;;
+    *.pem|*.key|*.p12|*.pfx)
+      printf '  ✗ Staged file looks like a private key: %s\n' "$file" >&2
+      FOUND=1
+      ;;
+    id_rsa|id_ed25519|id_ecdsa|id_dsa)
+      printf '  ✗ Staged file looks like an SSH key: %s\n' "$file" >&2
+      FOUND=1
+      ;;
+  esac
+done <<EOF
+$STAGED
+EOF
+
+if [ "$FOUND" -eq 1 ]; then
+  printf '\n' >&2
+  printf '    Remove from staging: git restore --staged <file>\n' >&2
+  printf '    Add to .gitignore to prevent future accidents.\n' >&2
+  printf '\n' >&2
+  exit 1
+fi
+
+exit 0

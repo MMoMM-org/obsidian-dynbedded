@@ -1,0 +1,355 @@
+#!/bin/bash
+# tcs-git-helpers: v2.2.12
+# tcs-git-helpers-bundle: h3
+# pre-push — tcs-git-helpers repo-side safety hook
+#
+# Blocks pushes to branches whose GitHub PR is CLOSED or MERGED.
+#
+# Arguments (from git): <remote-name> <remote-url>
+# Stdin: one line per ref being pushed:
+#   <local-ref> <local-sha> <remote-ref> <remote-sha>
+#
+# V1 simplification: only checks the currently-checked-out branch.
+# Multi-ref push support (e.g. `git push --all`) is out of scope for v1;
+# the current branch PR check is sufficient for single-developer workflows.
+#
+# Configuration:
+#   CLAUDE_ALLOW_PUSH_TO_CLOSED_PR=1  — override; allows push once, logs to audit
+#   TCS_PUSH_TIMEOUT                  — gh timeout in seconds (default 5)
+#
+# Install: git config core.hooksPath .githooks
+#
+# Spec refs:
+#   - PRD M1 AC1-AC5 — block push to CLOSED/MERGED PR
+#   - SDD §Repo-side .githooks/ Templates — pre-push
+#   - ADR-6 — 60s TTL PR-state cache (shared with block-bad-git-ops.sh)
+#   - CON-3 — bash-only timeout (no coreutils timeout dependency)
+#   - M11   — standalone mode: works without any external env vars
+#   - SDD CON-1 — plugin env vars must not be required at git-hook time
+
+set -uo pipefail
+
+# ---------------------------------------------------------------------------
+# Source sibling lib-bundle.sh (self-contained install; no env-var deps).
+# Provides _resolve_data_dir, _emit_skip, _guard_gh.
+# ---------------------------------------------------------------------------
+
+_LIB="$(dirname "$0")/lib-bundle.sh"
+if [ ! -f "$_LIB" ]; then
+  printf 'tcs-git-helpers: lib-bundle.sh missing in .githooks/ — re-run /tcs-git-helpers:git-setup.\n' >&2
+  exit 0
+fi
+# shellcheck source=lib-bundle.sh
+# shellcheck disable=SC1091
+. "$_LIB"
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+_TIMEOUT="${TCS_PUSH_TIMEOUT:-5}"
+
+# ---------------------------------------------------------------------------
+# Inline cache helpers (60s TTL PR-state cache)
+# These operate on the data dir resolved via _resolve_data_dir from lib-bundle.sh.
+# ---------------------------------------------------------------------------
+
+# Derive a 12-char repo hash: sha1 prefix of the repo top-level path.
+_inline_repo_hash() {
+  local repo_path
+  repo_path="$(git rev-parse --show-toplevel 2>/dev/null)" || return 1
+  printf '%s' "$repo_path" | shasum 2>/dev/null | head -c 12
+}
+
+# Convert RFC3339 UTC to epoch seconds. BSD date first, then GNU.
+_inline_iso_to_epoch() {
+  local iso="$1"
+  if date -j -u -f '%Y-%m-%dT%H:%M:%SZ' "$iso" +%s 2>/dev/null; then
+    return 0
+  fi
+  date -u -d "$iso" +%s 2>/dev/null
+}
+
+# Read PR state for a branch from the 60s TTL cache.
+# Outputs bare state ("OPEN", "MERGED", "CLOSED", "NO_PR") or empty on miss/expired.
+_inline_read_pr_state_cache() {
+  local branch="$1"
+
+  local data_dir
+  data_dir="$(_resolve_data_dir 2>/dev/null)" || return 0
+  [ -n "$data_dir" ] || return 0
+
+  local hash
+  hash="$(_inline_repo_hash)" || return 0
+  local cache_file="${data_dir}/${hash}-pr-state.json"
+  [ -r "$cache_file" ] || return 0
+  command -v jq >/dev/null 2>&1 || return 0
+
+  jq -e . "$cache_file" >/dev/null 2>&1 || return 0
+
+  local checked state epoch now
+  # || true: prevent jq exit-code tripping set -uo pipefail
+  checked="$(jq -r --arg b "$branch" '.branch_state[$b].checked_iso // empty' "$cache_file" 2>/dev/null || true)"
+  state="$(jq -r --arg b "$branch" '.branch_state[$b].state // empty' "$cache_file" 2>/dev/null || true)"
+
+  [ -n "$state" ]   || return 0
+  [ -n "$checked" ] || return 0
+
+  if epoch="$(_inline_iso_to_epoch "$checked" 2>/dev/null)"; then
+    now="$(date +%s)"
+    if [ $(( now - epoch )) -lt 60 ]; then
+      printf '%s' "$state"
+    fi
+  fi
+  return 0
+}
+
+# Write PR state for one branch into the cache (best-effort; errors are silent).
+_inline_write_pr_state_cache() {
+  local branch="$1" state="$2" pr_number="${3:-0}"
+  command -v jq >/dev/null 2>&1 || return 0
+
+  local data_dir
+  data_dir="$(_resolve_data_dir 2>/dev/null)" || return 0
+  [ -n "$data_dir" ] || return 0
+
+  local hash
+  hash="$(_inline_repo_hash)" || return 0
+  local cache_file="${data_dir}/${hash}-pr-state.json"
+  local now_iso
+  now_iso="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  mkdir -p "$data_dir" 2>/dev/null || return 0
+
+  local current
+  if [ -r "$cache_file" ] && jq -e . "$cache_file" >/dev/null 2>&1; then
+    current="$(cat "$cache_file")"
+  else
+    current='{"version":1,"updated_iso":"","branch_state":{}}'
+  fi
+
+  printf '%s' "$current" \
+    | jq --arg branch "$branch" \
+         --arg state "$state" \
+         --arg pr_number "$pr_number" \
+         --arg now "$now_iso" \
+         '.version = 1
+          | .updated_iso = $now
+          | .branch_state[$branch] = (
+              { state: $state, checked_iso: $now }
+              + (if (($pr_number|tonumber?) // 0) > 0
+                 then { number: ($pr_number|tonumber) }
+                 else {} end)
+            )' > "${cache_file}.tmp" 2>/dev/null \
+    && mv "${cache_file}.tmp" "$cache_file" 2>/dev/null || true
+}
+
+# ---------------------------------------------------------------------------
+# Cache dispatch
+# ---------------------------------------------------------------------------
+
+_read_pr_state() {
+  local branch="$1"
+  _inline_read_pr_state_cache "$branch"
+}
+
+_write_pr_state() {
+  local branch="$1" state="$2" pr_number="${3:-0}"
+  _inline_write_pr_state_cache "$branch" "$state" "$pr_number"
+}
+
+# ---------------------------------------------------------------------------
+# CON-3: bash-only gh timeout (no coreutils timeout dependency)
+# ---------------------------------------------------------------------------
+
+# Run gh with a pure-bash timeout. If gh hangs past $timeout_secs, kill it
+# with SIGTERM and return 143 (128+15) on timeout. On success, prints gh
+# output to stdout and returns gh's exit code.
+_gh_with_timeout() {
+  local timeout_secs="$1"; shift
+  local out_file
+  out_file="$(mktemp "${TMPDIR:-/tmp}/tcs-gh-out.XXXXXX")"
+
+  (
+    "$@" > "$out_file" 2>&1 &
+    local GH_PID=$!
+    # Background sleep watchdog — kills gh if it outlives the timeout.
+    ( sleep "$timeout_secs" && kill -TERM "$GH_PID" 2>/dev/null ) &
+    local SLEEP_PID=$!
+    wait "$GH_PID" 2>/dev/null
+    local EXIT=$?
+    kill "$SLEEP_PID" 2>/dev/null
+    wait "$SLEEP_PID" 2>/dev/null || true
+    exit $EXIT
+  )
+  local RET=$?
+
+  cat "$out_file"
+  rm -f "$out_file" 2>/dev/null || true
+  return $RET
+}
+
+# ---------------------------------------------------------------------------
+# gh PR state lookup
+# Returns "STATE PR_NUMBER" on stdout, e.g. "CLOSED 42"
+# Falls back to "NO_PR 0" on empty array or parse failure.
+# ---------------------------------------------------------------------------
+
+_query_gh_pr_state() {
+  local branch="$1"
+  local gh_out gh_exit
+
+  if ! command -v gh >/dev/null 2>&1; then
+    _emit_skip "pre-push" \
+      "gh CLI not installed" \
+      "Install gh to enable push blocking on closed PRs"
+    printf 'SKIP 0\n'
+    return 0
+  fi
+
+  # Capture output + exit code in a subshell so set -uo pipefail doesn't bite us.
+  # --state all is REQUIRED: `gh pr list` defaults to --state open, so a CLOSED
+  # or MERGED PR (exactly what this hook must block) would be invisible and the
+  # query would return [] → NO_PR → push allowed. Mirrors scripts/lib/git_state.sh.
+  gh_exit=0
+  gh_out="$(_gh_with_timeout "$_TIMEOUT" \
+    gh pr list --head "$branch" --state all --json state,number,mergedAt --limit 1 2>/dev/null)" || gh_exit=$?
+
+  # Exit 4 = auth error (fail-open with warning).
+  if [ "$gh_exit" -eq 4 ]; then
+    _emit_skip "pre-push" \
+      "gh CLI unauthenticated" \
+      "Run \`gh auth login\` to enable push blocking on closed PRs"
+    printf 'SKIP 0\n'
+    return 0
+  fi
+
+  # Exit 1 — check stderr content.
+  # Note: timeout (SIGTERM) yields exit 143 (128+15), handled by the catch-all below.
+  if [ "$gh_exit" -ne 0 ]; then
+    # "no GitHub remote" is a silent fail-open (common case: non-GitHub repo).
+    case "$gh_out" in
+      *"no GitHub remote"*)
+        printf 'SKIP 0\n'
+        return 0
+        ;;
+    esac
+    # Other errors: warn + fail-open.
+    _emit_skip "pre-push" \
+      "gh error (exit ${gh_exit})" \
+      "Push allowed; check gh CLI status"
+    printf 'SKIP 0\n'
+    return 0
+  fi
+
+  # Parse state + number from JSON array output.
+  if command -v jq >/dev/null 2>&1; then
+    local state number
+    # || true: jq exit non-zero on empty/null is fine; we default below.
+    state="$(printf '%s' "$gh_out" | jq -r '.[0].state // empty' 2>/dev/null || true)"
+    number="$(printf '%s' "$gh_out" | jq -r '.[0].number // 0' 2>/dev/null || true)"
+    [ -n "$state" ]  || state="NO_PR"
+    [ -n "$number" ] || number="0"
+    printf '%s %s\n' "$state" "$number"
+  else
+    # jq unavailable: minimal grep-based extraction (bash 3.2 POSIX ERE).
+    local state number
+    state="$(printf '%s' "$gh_out" | grep -oE '"state":"[^"]+"' | head -1 | grep -oE '[A-Z]+')" || true
+    number="$(printf '%s' "$gh_out" | grep -oE '"number":[0-9]+' | head -1 | grep -oE '[0-9]+')" || true
+    [ -n "$state" ]  || state="NO_PR"
+    [ -n "$number" ] || number="0"
+    printf '%s %s\n' "$state" "$number"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Override: consume CLAUDE_ALLOW_PUSH_TO_CLOSED_PR=1 (M12 / ADR-5)
+# ---------------------------------------------------------------------------
+
+_check_override() {
+  if [ "${CLAUDE_ALLOW_PUSH_TO_CLOSED_PR:-}" = "1" ]; then
+    printf 'tcs-git-helpers: override consumed: CLAUDE_ALLOW_PUSH_TO_CLOSED_PR\n' >&2
+    return 0  # 0 = override is active
+  fi
+  return 1  # 1 = no override
+}
+
+# ---------------------------------------------------------------------------
+# Main logic
+# ---------------------------------------------------------------------------
+
+BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || printf '')"
+
+if [ -z "$BRANCH" ] || [ "$BRANCH" = "HEAD" ]; then
+  # Detached HEAD or can't determine branch — fail-open.
+  exit 0
+fi
+
+# Check the override first — if set, consume it and allow unconditionally.
+if _check_override; then
+  exit 0
+fi
+
+# Try cache first (60s TTL).
+CACHED_STATE="$(_read_pr_state "$BRANCH")"
+
+if [ -n "$CACHED_STATE" ]; then
+  # Cache hit: use the cached state directly.
+  STATE="$CACHED_STATE"
+  PR_NUMBER="0"
+  # Try to recover PR number from cache for better error messages.
+  _DATA_DIR="$(_resolve_data_dir 2>/dev/null)" || _DATA_DIR=""
+  if [ -n "$_DATA_DIR" ]; then
+    _HASH="$(_inline_repo_hash 2>/dev/null)" || _HASH=""
+    _PR_CACHE_PATH="${_DATA_DIR}/${_HASH}-pr-state.json"
+  else
+    _PR_CACHE_PATH=""
+  fi
+  if [ -n "${_PR_CACHE_PATH:-}" ] && [ -r "$_PR_CACHE_PATH" ] && command -v jq >/dev/null 2>&1; then
+    PR_NUMBER="$(jq -r --arg b "$BRANCH" '.branch_state[$b].number // 0' "$_PR_CACHE_PATH" 2>/dev/null || true)"
+    [ -n "$PR_NUMBER" ] || PR_NUMBER="0"
+  fi
+else
+  # Cache miss: query gh with timeout.
+  GH_RESULT="$(_query_gh_pr_state "$BRANCH")"
+  STATE="${GH_RESULT%% *}"
+  PR_NUMBER="${GH_RESULT##* }"
+
+  # SKIP means fail-open (gh was unavailable/errored).
+  if [ "$STATE" = "SKIP" ]; then
+    exit 0
+  fi
+
+  # Update cache for next time (best-effort).
+  _write_pr_state "$BRANCH" "$STATE" "$PR_NUMBER"
+fi
+
+# ---------------------------------------------------------------------------
+# Decision: block on CLOSED or MERGED; allow on everything else.
+# ---------------------------------------------------------------------------
+
+case "$STATE" in
+  CLOSED)
+    printf '\n' >&2
+    printf 'tcs-git-helpers: push BLOCKED — PR #%s is CLOSED\n' "$PR_NUMBER" >&2
+    printf '  Branch: %s\n' "$BRANCH" >&2
+    printf '  The PR for this branch was closed without merging.\n' >&2
+    printf '  If you need to re-open work, create a new branch or re-open the PR.\n' >&2
+    printf '  To override: CLAUDE_ALLOW_PUSH_TO_CLOSED_PR=1 git push\n' >&2
+    printf '\n' >&2
+    exit 1
+    ;;
+  MERGED)
+    printf '\n' >&2
+    printf 'tcs-git-helpers: push BLOCKED — PR #%s is MERGED\n' "$PR_NUMBER" >&2
+    printf '  Branch: %s\n' "$BRANCH" >&2
+    printf '  This branch has already been merged. Pushing again risks duplicate history.\n' >&2
+    printf '  See: references/squash-merge-trap.md\n' >&2
+    printf '  To override: CLAUDE_ALLOW_PUSH_TO_CLOSED_PR=1 git push\n' >&2
+    printf '\n' >&2
+    exit 1
+    ;;
+  *)
+    # OPEN, NO_PR, DRAFT, UNKNOWN, or any other state — allow.
+    exit 0
+    ;;
+esac

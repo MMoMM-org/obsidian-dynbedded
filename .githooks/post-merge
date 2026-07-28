@@ -1,0 +1,198 @@
+#!/bin/bash
+# tcs-git-helpers: v2.2.12
+# tcs-git-helpers-bundle: h3
+# post-merge — tcs-git-helpers repo-side stale-branch surfacing hook
+#
+# Runs after `git pull` or `git merge`. Queries GitHub for merged PRs whose
+# headRefName matches a local branch, emits a suggestion list to stderr,
+# and updates the stale-branch cache atomically.
+#
+# Key behaviours:
+#   - Single batched `gh pr list` call — NEVER per-branch (O(n) network calls
+#     are explicitly forbidden per research/performance.md §3).
+#   - Suggestions go to STDERR only; STDOUT is always empty.
+#   - Exits 0 always — post-merge MUST NOT block a merge.
+#   - Worktree branches (M6 AC3) are excluded from the stale list.
+#   - Degrades gracefully (emits one structured stderr line) when gh or jq
+#     are absent or when the cache write fails.
+#
+# Install: git config core.hooksPath .githooks
+#
+# Spec refs:
+#   - PRD M6 AC1-AC3 — stale-branch surfacing
+#   - SDD §Repo-side .githooks/ Templates — post-merge
+#   - SDD §Cache Schemas (TSV+JSON dual-write)
+#   - SDD §Error Handling Table — structured skip messages
+#   - ADR-4 — atomic dual-write (.tmp → mv)
+#   - research/performance.md §3 — single batched gh call
+
+set -uo pipefail
+
+# ---------------------------------------------------------------------------
+# Source sibling lib-bundle.sh (self-contained install; no env-var deps).
+# If the lib is missing, emit a structured message and exit 0.
+# ---------------------------------------------------------------------------
+
+_LIB="$(dirname "$0")/lib-bundle.sh"
+if [ ! -f "$_LIB" ]; then
+  printf 'tcs-git-helpers: lib-bundle.sh missing in .githooks/ — re-run /tcs-git-helpers:git-setup.\n' >&2
+  exit 0
+fi
+# shellcheck source=lib-bundle.sh
+# shellcheck disable=SC1091
+. "$_LIB"
+
+# ---------------------------------------------------------------------------
+# Main logic
+# ---------------------------------------------------------------------------
+
+# Always exit 0 — post-merge MUST NOT block a merge.
+_main() {
+  # 1. Ensure we're in a git repository.
+  local repo_path
+  repo_path="$(git rev-parse --show-toplevel 2>/dev/null)" || {
+    _emit_skip "post-merge" \
+      "not inside a git repository" \
+      "Ensure the hook is installed inside a git repo"
+    return 0
+  }
+
+  # 2. Check gh is available; emit structured skip if not.
+  _guard_gh "stale-branch-refresh" || return 0
+
+  # 3. Gather local branches (for cross-reference).
+  local local_branches_raw
+  local_branches_raw="$(git for-each-ref refs/heads/ --format='%(refname:short)' 2>/dev/null)" || local_branches_raw=""
+
+  if [ -z "$local_branches_raw" ]; then
+    return 0
+  fi
+
+  # 4. Gather worktree branches (M6 AC3 exclusion).
+  local worktree_branches_raw
+  worktree_branches_raw="$(git worktree list --porcelain 2>/dev/null)" || worktree_branches_raw=""
+
+  # Extract branch names from worktree --porcelain output.
+  # Pattern: lines starting with "branch refs/heads/<name>"
+  local worktree_branches=""
+  if [ -n "$worktree_branches_raw" ]; then
+    worktree_branches="$(printf '%s\n' "$worktree_branches_raw" \
+      | grep '^branch refs/heads/' \
+      | sed 's|^branch refs/heads/||' 2>/dev/null)" || worktree_branches=""
+  fi
+
+  # 5. SINGLE batched gh call — the only network call in this hook.
+  local gh_out gh_exit
+  gh_exit=0
+  gh_out="$(gh pr list \
+    --state merged \
+    --json number,headRefName,mergedAt \
+    --limit 100 \
+    2>/dev/null)" || gh_exit=$?
+
+  # Degrade gracefully on auth error (exit 4).
+  if [ "$gh_exit" -eq 4 ]; then
+    _emit_skip "stale-branch-refresh" \
+      "gh CLI unauthenticated" \
+      "Run \`gh auth login\`"
+    return 0
+  fi
+  if [ "$gh_exit" -ne 0 ]; then
+    # "no GitHub remote" or other: silent fail-open.
+    case "$gh_out" in
+      *"no GitHub remote"*) return 0 ;;
+      *"not a git repository"*) return 0 ;;
+    esac
+    return 0
+  fi
+
+  # Guard: gh may return empty or non-JSON on some errors.
+  if [ -z "$gh_out" ] || [ "$gh_out" = "null" ]; then
+    return 0
+  fi
+
+  # 6. Check jq is available; emit structured skip if not.
+  _guard_jq "stale-branch-refresh" || return 0
+
+  # Validate JSON before processing.
+  jq -e . <<< "$gh_out" >/dev/null 2>/dev/null || return 0
+
+  # Build a newline-delimited list of "headRefName<TAB>number<TAB>mergedAt"
+  # from the merged PR array.
+  local merged_list
+  merged_list="$(printf '%s' "$gh_out" \
+    | jq -r '.[] | [.headRefName, (.number | tostring), .mergedAt] | @tsv' \
+    2>/dev/null || true)"
+
+  if [ -z "$merged_list" ]; then
+    return 0
+  fi
+
+  # 7. Cross-reference: find local branches that appear in merged PRs,
+  #    excluding any checked out in a worktree.
+  local stale_rows=""
+  local stale_names=""
+
+  while IFS=$'\t' read -r ref_name pr_num merged_at; do
+    [ -z "$ref_name" ] && continue
+
+    # Is this branch a local branch?
+    if ! printf '%s\n' "$local_branches_raw" | grep -qxF "$ref_name" 2>/dev/null; then
+      continue
+    fi
+
+    # Is this branch checked out in a worktree? If so, exclude (M6 AC3).
+    if [ -n "$worktree_branches" ] && \
+       printf '%s\n' "$worktree_branches" | grep -qxF "$ref_name" 2>/dev/null; then
+      continue
+    fi
+
+    # Accumulate stale rows (TSV format: name<TAB>pr_number<TAB>merged_at).
+    if [ -n "$stale_rows" ]; then
+      stale_rows="${stale_rows}
+${ref_name}	${pr_num}	${merged_at}"
+    else
+      stale_rows="${ref_name}	${pr_num}	${merged_at}"
+    fi
+
+    # Accumulate display names (for stderr suggestion).
+    if [ -n "$stale_names" ]; then
+      stale_names="${stale_names}, ${ref_name} (#${pr_num})"
+    else
+      stale_names="${ref_name} (#${pr_num})"
+    fi
+  done <<EOF
+$merged_list
+EOF
+
+  # 8. Emit stderr suggestion if any stale branches found (M6 AC1).
+  if [ -n "$stale_names" ]; then
+    local count=0
+    while IFS=$'\t' read -r name _pr _ma; do
+      [ -z "$name" ] && continue
+      count=$((count + 1))
+    done <<EOF2
+$stale_rows
+EOF2
+    printf 'tcs-git-helpers: %d stale branch(es) found: %s\n' \
+      "$count" "$stale_names" >&2
+    printf 'tcs-git-helpers: run /tcs-git-helpers:git-audit --cleanup to review\n' >&2
+  fi
+
+  # 9. Update stale-branch cache atomically via lib-bundle.sh.
+  if [ -n "$stale_rows" ]; then
+    local default_branch
+    default_branch="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null \
+      | sed 's|refs/remotes/origin/||' 2>/dev/null)" || default_branch="main"
+    [ -n "$default_branch" ] || default_branch="main"
+
+    local updated_iso
+    updated_iso="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+    printf '%s\n' "$stale_rows" \
+      | _write_stale_cache "$updated_iso" "$repo_path" "$default_branch"
+  fi
+}
+
+_main
+exit 0
