@@ -1,0 +1,8 @@
+# Written by /tcs-patterns:patterns-setup. Reviewed and committed like any other file.
+schema = 1
+bundle = "2.0.7"
+
+[patterns.obsidian-plugin]
+version = "3"
+installed_as = "tcs-obsidian-plugin"
+sha256 = "6e7a0527fb9020e88704aadb228ecb2ab090434a309417786c0875f657ea088c"
