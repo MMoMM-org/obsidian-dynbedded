@@ -237,3 +237,6 @@ dist
 /begin-code.sh
 .mcp.json
 /generated-images/
+
+# Claude Code skills (e.g. tcs-patterns) are per-machine; cloners choose their own
+/.claude/skills/
