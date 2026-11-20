@@ -237,3 +237,6 @@ dist
 /begin-code.sh
 .mcp.json
 /generated-images/
+
+# Live harness (npm run live:open): per-launch Obsidian logs
+/live-output/
