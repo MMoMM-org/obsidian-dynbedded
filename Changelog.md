@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.6.3...1.7.0) (2026-11-20)
+
+### Features
+
+* make settings searchable via declarative settings API ([5837d02](https://github.com/MMoMM-org/obsidian-dynbedded/commit/5837d025e7de753989593773472080a4d9b608c2))
+
 ## [1.6.3](https://github.com/MMoMM-org/obsidian-dynbedded/compare/1.6.2...1.6.3) (2026-07-28)
 
 ### Bug Fixes

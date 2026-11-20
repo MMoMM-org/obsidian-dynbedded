@@ -51,7 +51,7 @@
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"live:open": "node scripts/live-open.mjs"
 	},
-	"version": "1.6.3",
+	"version": "1.7.0",
 	"release": {
 		"private": false,
 		"branches": [
