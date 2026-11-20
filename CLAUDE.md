@@ -11,7 +11,10 @@ Obsidian plugin that enables dynamic embeds: embed files or header sections with
 ```bash
 npm run build   # type-check + production build → build/
 npm run dev     # watch build → Dynbedded/.obsidian/plugins/obsidian-dynbedded/
+npm run live:open -- [--settings|--empty|--keep|--smoke]   # throw-away Obsidian (temp profile + temp vault copy) with build/
 ```
+
+For checking a change in real Obsidian without touching the user's profile or the `Dynbedded/` vault (and for `--smoke` status checks from Claude, which need the Bash sandbox disabled), see `docs/live-testing.md`.
 
 The test vault is `Dynbedded/` in the repo root. `npm run dev` writes directly into it so Obsidian hot-reloads the plugin instantly (hot-reload plugin must be enabled in the vault).
 
