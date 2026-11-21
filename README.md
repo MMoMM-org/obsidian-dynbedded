@@ -272,7 +272,7 @@ There are some limitations to the plugin (some might be overcome in the future, 
 ## Installing via Obsidian Community Plugins
 
 Just install the plugin via the community plugin dialog as soon as it becomes available. After enabling you are ready to go.
-The settings tab covers silent mode, auto-refresh, default display mode, quote styling, source link, include-heading, and Quoth compatibility — all opt-in and off by default (plus debug logging and a link to my Ko-Fi support).
+The settings tab covers silent mode, auto-refresh, default display mode, quote styling, source link, include-heading, and Quoth compatibility — all opt-in and off by default (plus debug logging and a link to my Ko-Fi support). On Obsidian 1.13 and later, every Dynbedded setting can also be found through Obsidian's settings search.
 
 ## Installing via BRAT
 

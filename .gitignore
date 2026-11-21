@@ -240,3 +240,6 @@ dist
 
 # Claude Code skills (e.g. tcs-patterns) are per-machine; cloners choose their own
 /.claude/skills/
+
+# Live harness (npm run live:open): per-launch Obsidian logs
+/live-output/
