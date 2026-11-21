@@ -142,18 +142,26 @@ async function readMinAppVersion(pluginDir) {
 	return manifest.minAppVersion;
 }
 
-/** `evaluate` that answers null while the page reloads or has no `app` yet. */
-async function tryEvaluate(cdp, expression) {
+/** `cdp.call` that answers null while the page reloads or has no `app` yet. */
+async function tryCall(cdp, fn, args = []) {
 	try {
-		return await cdp.evaluate(expression, { timeoutMs: 5_000 });
+		return await cdp.call(fn, args, { timeoutMs: 5_000 });
 	} catch {
 		return null;
 	}
 }
 
-const LAYOUT_READY = `typeof app !== "undefined" && app.workspace?.layoutReady === true`;
-const PLUGINS_ON = `(${LAYOUT_READY}) && app.plugins.isEnabled() === true`;
-const PLUGIN_LOADED = `(${PLUGINS_ON}) && app.plugins.plugins[${JSON.stringify(PLUGIN_ID)}] !== undefined`;
+// Page-side probes: run in Obsidian's window via cdp.call (page globals only, no closures).
+/* global app, localStorage, location */
+const layoutReady = () => typeof app !== "undefined" && app.workspace?.layoutReady === true;
+const pluginsOn = () => typeof app !== "undefined" && app.workspace?.layoutReady === true && app.plugins.isEnabled() === true;
+const pluginLoaded = (id) => typeof app !== "undefined" && app.workspace?.layoutReady === true && app.plugins.isEnabled() === true && app.plugins.plugins[id] !== undefined;
+const trustVaultAndReload = () => {
+	localStorage.setItem("enable-plugin-" + app.appId, "true");
+	setTimeout(() => location.reload(), 50);
+	return true;
+};
+const enablePluginViaApi = (id) => app.plugins.setEnable(true).then(() => app.plugins.enablePlugin(id));
 
 /**
  * A fresh profile starts in restricted mode (and may show the trust prompt):
@@ -161,15 +169,15 @@ const PLUGIN_LOADED = `(${PLUGINS_ON}) && app.plugins.plugins[${JSON.stringify(P
  * one. If the flag does not work in this version, fall back to the plugin API.
  */
 async function enableCommunityPlugins(cdp) {
-	if (await tryEvaluate(cdp, PLUGINS_ON)) return;
-	await cdp.evaluate(`localStorage.setItem("enable-plugin-" + app.appId, "true"); setTimeout(() => location.reload(), 50); true`);
-	const enabled = await waitFor(() => tryEvaluate(cdp, PLUGINS_ON), {
+	if (await tryCall(cdp, pluginsOn)) return;
+	await cdp.call(trustVaultAndReload);
+	const enabled = await waitFor(() => tryCall(cdp, pluginsOn), {
 		timeoutMs: TIMEOUTS.layout,
 		what: "the workspace to come back with community plugins on after the reload",
 	}).catch(() => false);
 	if (enabled) return;
-	await waitFor(() => tryEvaluate(cdp, LAYOUT_READY), { timeoutMs: TIMEOUTS.layout, what: "workspace layout ready" });
-	await cdp.evaluate(`app.plugins.setEnable(true).then(() => app.plugins.enablePlugin(${JSON.stringify(PLUGIN_ID)}))`);
+	await waitFor(() => tryCall(cdp, layoutReady), { timeoutMs: TIMEOUTS.layout, what: "workspace layout ready" });
+	await cdp.call(enablePluginViaApi, [PLUGIN_ID]);
 }
 
 async function findWindow(port, child, tail) {
@@ -237,7 +245,7 @@ export async function launchObsidian(vaultPath) {
 		const target = await Promise.race([findWindow(port, started, tail), spawnError]);
 		cdp = await connectCdp(target.webSocketDebuggerUrl);
 		const client = cdp;
-		await waitFor(() => tryEvaluate(client, LAYOUT_READY), { timeoutMs: TIMEOUTS.layout, what: "workspace layout ready" });
+		await waitFor(() => tryCall(client, layoutReady), { timeoutMs: TIMEOUTS.layout, what: "workspace layout ready" });
 
 		const opened = await client.evaluate(`app.vault.adapter.basePath`);
 		if (path.resolve(opened) !== vault) throw new Error(`Obsidian opened ${opened}, not the temp vault ${vault}`);
@@ -252,7 +260,7 @@ export async function launchObsidian(vaultPath) {
 		}
 
 		await enableCommunityPlugins(client);
-		await waitFor(() => tryEvaluate(client, PLUGIN_LOADED), {
+		await waitFor(() => tryCall(client, pluginLoaded, [PLUGIN_ID]), {
 			timeoutMs: TIMEOUTS.plugin,
 			what: `plugin "${PLUGIN_ID}" to load (check the build in ${liveConfig.pluginDir} and the console of the Obsidian window)`,
 		});

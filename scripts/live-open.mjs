@@ -30,18 +30,23 @@ function parseArgs(argv) {
 	return options;
 }
 
-const id = JSON.stringify(PLUGIN_ID);
+// Page-side functions: run in Obsidian's window via cdp.call (page globals only, no closures).
+/* global app */
 
-/** Opens Obsidian's settings on the Dynbedded tab (`app.setting` is internal API, fine for a dev tool). */
-const OPEN_SETTINGS = `(() => { app.setting.open(); app.setting.openTabById(${id}); return true; })()`;
+/** Opens Obsidian's settings on the plugin's tab (`app.setting` is internal API, fine for a dev tool). */
+const openSettings = (id) => {
+	app.setting.open();
+	app.setting.openTabById(id);
+	return true;
+};
 
 /** What `--smoke` reports: the plugin version and whether the settings tab is declarative (1.13+). */
-const STATUS = `(() => {
-	const plugin = app.plugins.plugins[${id}];
-	const tab = (app.setting?.pluginTabs ?? []).find((t) => t.id === ${id});
+const status = (id) => {
+	const plugin = app.plugins.plugins[id];
+	const tab = (app.setting?.pluginTabs ?? []).find((t) => t.id === id);
 	const items = tab && typeof tab.getSettingDefinitions === "function" ? tab.getSettingDefinitions() : [];
 	return { pluginVersion: plugin?.manifest?.version ?? null, settingsTab: tab !== undefined, settingDefinitions: items.length };
-})()`;
+};
 
 async function main(argv) {
 	const options = parseArgs(argv);
@@ -56,14 +61,14 @@ async function main(argv) {
 	console.log(`[live:open] Obsidian log: ${session.logFile}`);
 
 	if (options.smoke) {
-		const status = await session.cdp.evaluate(STATUS);
-		console.log(`[live:open] smoke: ${JSON.stringify(status)}`);
+		const report = await session.cdp.call(status, [PLUGIN_ID]);
+		console.log(`[live:open] smoke: ${JSON.stringify(report)}`);
 		await session.close();
-		if (!status.pluginVersion || !status.settingsTab) process.exitCode = 1;
+		if (!report.pluginVersion || !report.settingsTab) process.exitCode = 1;
 		return;
 	}
 	if (options.settings) {
-		await session.cdp.evaluate(OPEN_SETTINGS).catch((e) => console.warn(`[live:open] could not open the settings tab: ${e.message}`));
+		await session.cdp.call(openSettings, [PLUGIN_ID]).catch((e) => console.warn(`[live:open] could not open the settings tab: ${e.message}`));
 	}
 	console.log("[live:open] Ctrl-C to quit and clean up (or quit Obsidian).");
 	await session.exited;

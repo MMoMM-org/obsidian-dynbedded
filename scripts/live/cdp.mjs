@@ -47,14 +47,24 @@ export class CdpClient {
 		});
 	}
 
-	/** `Runtime.evaluate` in the page: awaits a returned promise, returns the value as JSON; rejects on an exception. */
+	/** `Runtime.evaluate` of a fixed expression in the page: awaits a returned promise, returns the value as JSON; rejects on an exception. */
 	async evaluate(expression, options = {}) {
-		const reply = await this.send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true }, options);
-		if (reply.exceptionDetails) {
-			const details = reply.exceptionDetails;
-			throw new CdpError(`Evaluation failed: ${details.exception?.description ?? details.text ?? "unknown exception"}`);
-		}
-		return reply.result.value;
+		return valueOf(await this.send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true }, options));
+	}
+
+	/**
+	 * Calls `fn` in the page with `args` (JSON values) handed over as CDP call
+	 * arguments, so no value is ever spliced into source text. `fn` runs in the
+	 * page's scope: it may use page globals (`app`, `localStorage`), not closures.
+	 */
+	async call(fn, args = [], options = {}) {
+		const { result: global } = await this.send("Runtime.evaluate", { expression: "globalThis" }, options);
+		const reply = await this.send(
+			"Runtime.callFunctionOn",
+			{ functionDeclaration: fn.toString(), objectId: global.objectId, arguments: args.map((value) => ({ value })), awaitPromise: true, returnByValue: true },
+			options,
+		);
+		return valueOf(reply);
 	}
 
 	close() {
@@ -86,6 +96,14 @@ export class CdpClient {
 			this.#pending.delete(id);
 		}
 	}
+}
+
+function valueOf(reply) {
+	if (reply.exceptionDetails) {
+		const details = reply.exceptionDetails;
+		throw new CdpError(`Evaluation failed: ${details.exception?.description ?? details.text ?? "unknown exception"}`);
+	}
+	return reply.result.value;
 }
 
 /** The targets of a running Electron app (`GET http://127.0.0.1:port/json/list`). */
