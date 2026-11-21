@@ -16,6 +16,13 @@ updates:
       dev-dependencies:
         patterns:
           - "*"
+    ignore:
+      # typescript-eslint (also pulled in by eslint-plugin-obsidianmd) pins its
+      # TypeScript peer range (8.73: >=4.8.4 <6.1.0); a TS major bump breaks
+      # `npm ci` with ERESOLVE, including in the Release workflow (PR #51).
+      # Raise TypeScript by hand once typescript-eslint supports the new major.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
