@@ -7,8 +7,6 @@ import { buildReference } from './commands/CopyReference';
 import { convertQuothBlocks } from './commands/ConvertQuoth';
 import { ErrorLink, renderError } from './ErrorDisplay';
 
-type LogType = typeof console.log;
-
 
 export default class Dynbedded extends Plugin {
 	settings: DynbeddedSettings;
@@ -89,7 +87,7 @@ export default class Dynbedded extends Plugin {
 		this.log("Unloading Plugin")
 	}
 
-	log(...args: Parameters<LogType>) {
+	log(...args: unknown[]) {
         if (this.settings.debugLogging) {
             console.debug(this.pluginName + "-Debug:", ...args);
 		}
